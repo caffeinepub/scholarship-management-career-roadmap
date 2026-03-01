@@ -1,0 +1,20 @@
+{
+  "frontend/src/pages/Scholarships.tsx": "Scholarship search and browse page with real-time filtering by keyword, category, and provider. Fixed React hooks rules violation by moving `useMemo` before the conditional early return.",
+  "frontend/src/components/ChatbotWidget.tsx": "Floating chatbot widget with keyword-based FAQ matching, message history, and page links. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/DashboardLayout.tsx": "Responsive sidebar + top navbar layout wrapping all authenticated pages. Updated all `flex-shrink-0` instances to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/DocumentChecklist.tsx": "Reusable document checklist showing uploaded (green) vs missing (red) documents with file upload functionality. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/ScholarshipCard.tsx": "Reusable scholarship card displaying title, provider, deadline, category, eligibility badge, and apply button. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/SkillGapAnalysis.tsx": "Skill gap analysis widget comparing user skills against scholarship requirements with matched/missing indicators. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/SummaryCard.tsx": "Reusable metric card with icon, value, title, and description for dashboard summary stats. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/pages/Dashboard.tsx": "Main authenticated dashboard page with hero banner, summary cards, profile completion meter, skill gap analysis, and recent applications. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/pages/LoginPage.tsx": "Login landing page with Internet Identity authentication, feature highlights, and hero banner. Updated `flex-shrink-0` to `shrink-0` for Tailwind v3 compliance.",
+  "frontend/src/components/ProfileSetupModal.tsx": "First-time profile setup modal that collects name, email, DOB, gender, and category. Fixed Gender and Category enum usage by importing and using enum members instead of string literals.",
+  "frontend/src/pages/ScholarshipDetail.tsx": "Scholarship application detail page showing scholarship info, eligibility summary, document checklist, auto-fill form, and submit button. Fixed `useParams` to use the correct full nested route path `/protected/scholarships/$id` matching the router tree structure.",
+  "frontend/src/pages/ResumeBuilder.tsx": "Resume builder page with tabbed Academic and Career forms, auto-fill from profile, and save to backend functionality. Supports adding/removing multiple academic records and career entries.",
+  "frontend/src/pages/Documents.tsx": "Documents management page showing all required document types with upload/replace functionality and stats for uploaded vs missing counts. Uses DocumentChecklist component with all standard document types.",
+  "frontend/src/pages/Profile.tsx": "Personal profile page with editable fields for name, email, DOB, gender, and category, plus a profile completion meter. Uses Gender and Category enums correctly for select values.",
+  "frontend/src/pages/MyApplications.tsx": "My Applications page listing all scholarship applications with status badges, scholarship details, and navigation to detail pages. Shows empty state with browse prompt when no applications exist.",
+  "frontend/src/pages/Help.tsx": "Public FAQ/Help page with searchable accordion of all chatbot knowledge base entries and a chatbot CTA. Accessible without authentication and includes language toggle.",
+  "frontend/src/index.css": "Global CSS with OKLCH color system tokens for deep teal primary and saffron accent theme, plus status indicator utility classes.",
+  "frontend/tailwind.config.js": "Tailwind configuration with custom saffron and teal color palettes, Inter font family, and standard design tokens for the scholarship portal theme."
+}

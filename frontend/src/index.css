@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.625rem;
+
+    /* Deep teal primary palette */
+    --background: 0.98 0 0;
+    --foreground: 0.15 0.02 220;
+    --card: 1 0 0;
+    --card-foreground: 0.15 0.02 220;
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0.02 220;
+    --primary: 0.38 0.09 195;
+    --primary-foreground: 0.98 0 0;
+    --secondary: 0.95 0.01 195;
+    --secondary-foreground: 0.25 0.06 195;
+    --muted: 0.95 0.01 195;
+    --muted-foreground: 0.5 0.03 220;
+    --accent: 0.93 0.02 195;
+    --accent-foreground: 0.25 0.06 195;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.9 0.01 220;
+    --input: 0.9 0.01 220;
+    --ring: 0.38 0.09 195;
+    --chart-1: 0.646 0.222 41.116;
+    --chart-2: 0.6 0.118 184.704;
+    --chart-3: 0.398 0.07 227.392;
+    --chart-4: 0.828 0.189 84.429;
+    --chart-5: 0.769 0.188 70.08;
+    --sidebar: 0.22 0.06 195;
+    --sidebar-foreground: 0.95 0.01 195;
+    --sidebar-primary: 0.75 0.12 60;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.28 0.07 195;
+    --sidebar-accent-foreground: 0.95 0.01 195;
+    --sidebar-border: 0.3 0.07 195;
+    --sidebar-ring: 0.75 0.12 60;
+  }
+
+  .dark {
+    --background: 0.12 0.03 220;
+    --foreground: 0.95 0.01 195;
+    --card: 0.17 0.04 220;
+    --card-foreground: 0.95 0.01 195;
+    --popover: 0.2 0.04 220;
+    --popover-foreground: 0.95 0.01 195;
+    --primary: 0.75 0.12 60;
+    --primary-foreground: 0.12 0.03 220;
+    --secondary: 0.22 0.05 220;
+    --secondary-foreground: 0.95 0.01 195;
+    --muted: 0.22 0.05 220;
+    --muted-foreground: 0.65 0.04 220;
+    --accent: 0.28 0.06 220;
+    --accent-foreground: 0.95 0.01 195;
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.95 0 0;
+    --border: 1 0 0 / 10%;
+    --input: 1 0 0 / 15%;
+    --ring: 0.75 0.12 60;
+    --chart-1: 0.488 0.243 264.376;
+    --chart-2: 0.696 0.17 162.48;
+    --chart-3: 0.769 0.188 70.08;
+    --chart-4: 0.627 0.265 303.9;
+    --chart-5: 0.645 0.246 16.439;
+    --sidebar: 0.15 0.04 220;
+    --sidebar-foreground: 0.95 0.01 195;
+    --sidebar-primary: 0.75 0.12 60;
+    --sidebar-primary-foreground: 0.12 0.03 220;
+    --sidebar-accent: 0.2 0.05 220;
+    --sidebar-accent-foreground: 0.95 0.01 195;
+    --sidebar-border: 1 0 0 / 10%;
+    --sidebar-ring: 0.75 0.12 60;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', 'Noto Sans', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  /* Status indicator utilities */
+  .status-eligible {
+    @apply text-emerald-700 bg-emerald-50 border-emerald-200;
+  }
+
+  .status-pending {
+    @apply text-amber-700 bg-amber-50 border-amber-200;
+  }
+
+  .status-rejected {
+    @apply text-red-700 bg-red-50 border-red-200;
+  }
+
+  .status-missing {
+    @apply text-red-600 bg-red-50 border-red-200;
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-03-01T05:23:00.993Z",
+  "summary": "The diff implements the majority of the 16 requirements across backend (Motoko actor) and frontend (React/TypeScript). Most core features are present: the Motoko actor with user records, scholarship catalog, application tracking, eligibility checking, auto-fill, profile completion score, dashboard, profile meter, skill gap widget, scholarship search/browse, application detail, document checklist, resume builder, multilingual toggle, chatbot widget, and cohesive visual theme. However, several acceptance criteria have gaps or missing elements based on the available diff evidence.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "Filter parameters (category, deadline, provider) narrow results correctly via backend search/filter function",
+      "reason": "The backend main.mo is truncated and a dedicated backend search function with filter parameters (category, deadline, provider) is not clearly visible in the diff. Cannot confirm backend filter function implementation.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "requirement": "Scholarship Search & Browse page with search bar, filter controls, card grid, eligibility badge",
+      "reason": "The Scholarships page (frontend/src/pages/Scholarships.tsx) is listed among omitted files and is not present in the diff. Cannot verify implementation.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-11",
+      "requirement": "Scholarship Application detail page with eligibility summary, document checklist, pre-filled form, auto-fill button, disabled submit when documents missing",
+      "reason": "The ScholarshipDetail page (frontend/src/pages/ScholarshipDetail.tsx) is listed among omitted files and its content is not present in the diff. Cannot verify implementation.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "Resume Builder page with two tabbed sections, auto-fill, save to profile, form validation",
+      "reason": "The ResumeBuilder page (frontend/src/pages/ResumeBuilder.tsx) is listed among omitted files and is not present in the diff. Cannot verify implementation.",
+      "evidence": []
+    },
+    {
+      "id": "REQ-14",
+      "requirement": "All visible text updates instantly on language toggle across all components",
+      "reason": "The useTranslation hook manages language as local component state rather than shared React context. Language changes in one component instance will not propagate to sibling components, breaking the 'all visible text updates instantly on toggle' acceptance criterion.",
+      "evidence": [
+        "frontend/src/hooks/useTranslation.ts"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "requirement": "Consistent color palette applied platform-wide via Tailwind config",
+      "reason": "No tailwind.config.js/ts file is present in the diff. The saffron color is used in class names (bg-saffron, text-saffron) but its definition in the Tailwind config is not visible and cannot be verified.",
+      "evidence": [
+        "frontend/src/components/DashboardLayout.tsx",
+        "frontend/src/components/ScholarshipCard.tsx"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "ProfileSetupModal — a dialog that forces new users to create a profile on first login",
+      "reason": "This modal was not requested in the build spec. It is an additional feature beyond the stated requirements.",
+      "evidence": [
+        "frontend/src/components/ProfileSetupModal.tsx",
+        "frontend/src/pages/Dashboard.tsx"
+      ]
+    },
+    {
+      "description": "MixinAuthorization and AccessControl role-based permission system in the backend",
+      "reason": "The build request only requires user principal-keyed records with no mention of an access control layer, admin roles, or authorization mixins. The backend imports and uses MixinAuthorization and AccessControl modules with #user and admin permission checks.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "_initializeAccessControlWithSecret admin token initialization called from the frontend actor setup",
+      "reason": "The spec does not mention any admin token, secret parameter, or access control initialization. The useActor hook calls actor._initializeAccessControlWithSecret(adminToken) which is not part of any requirement.",
+      "evidence": [
+        "frontend/src/hooks/useActor.ts"
+      ]
+    },
+    {
+      "description": "LoginPage as a separate route with Internet Identity authentication flow and auth-protected routing",
+      "reason": "The build request does not specify an authentication or login flow as a requirement. A full login page and auth-protected routing system is implemented beyond what was requested.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useInternetIdentity.ts"
+      ]
+    },
+    {
+      "description": "Help page as a standalone public route (/help)",
+      "reason": "While REQ-15 mentions a Help section link in the chatbot fallback, no standalone Help page was specified as a requirement. A dedicated /help route and Help page component are implemented.",
+      "evidence": [
+        "frontend/src/App.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/ChatbotWidget.tsx",
+    "frontend/src/components/DashboardLayout.tsx",
+    "frontend/src/components/DocumentChecklist.tsx",
+    "frontend/src/components/LanguageToggle.tsx",
+    "frontend/src/components/ProfileCompletionMeter.tsx",
+    "frontend/src/components/ProfileSetupModal.tsx",
+    "frontend/src/components/ScholarshipCard.tsx",
+    "frontend/src/components/SkillGapAnalysis.tsx",
+    "frontend/src/components/SummaryCard.tsx",
+    "frontend/src/data/chatbotKnowledgeBase.json",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useTranslation.ts",
+    "frontend/src/i18n/translations.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/pages/Dashboard.tsx",
+    "frontend/src/pages/Documents.tsx",
+    "frontend/src/pages/Help.tsx",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/MyApplications.tsx",
+    "frontend/src/pages/Profile.tsx",
+    "frontend/src/pages/ResumeBuilder.tsx",
+    "frontend/src/pages/ScholarshipDetail.tsx",
+    "frontend/src/pages/Scholarships.tsx",
+    "frontend/src/utils/chatbotMatcher.ts",
+    "frontend/src/utils/urlParams.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}
