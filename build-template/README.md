@@ -1,4 +1,4 @@
-## Scholarship Management &amp; Career Roadmap
+## 
 
 This source code has been exported from [Caffeine](https://caffeine.ai/)
 

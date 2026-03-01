@@ -31,7 +31,7 @@
     --chart-3: 0.398 0.07 227.392;
     --chart-4: 0.828 0.189 84.429;
     --chart-5: 0.769 0.188 70.08;
-    --sidebar: 0.22 0.06 195;
+    --sidebar-background: 0.22 0.06 195;
     --sidebar-foreground: 0.95 0.01 195;
     --sidebar-primary: 0.75 0.12 60;
     --sidebar-primary-foreground: 0.98 0 0;
@@ -66,7 +66,7 @@
     --chart-3: 0.769 0.188 70.08;
     --chart-4: 0.627 0.265 303.9;
     --chart-5: 0.645 0.246 16.439;
-    --sidebar: 0.15 0.04 220;
+    --sidebar-background: 0.15 0.04 220;
     --sidebar-foreground: 0.95 0.01 195;
     --sidebar-primary: 0.75 0.12 60;
     --sidebar-primary-foreground: 0.12 0.03 220;
@@ -83,6 +83,41 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', 'Noto Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Global cursor rules */
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a,
+  label[for],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"]:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    cursor: not-allowed;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  [contenteditable="true"] {
+    cursor: text;
+  }
+
+  /* Global input focus styles */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    @apply transition-colors duration-150 ease-in-out;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: oklch(0.5 0.03 220 / 0.7);
   }
 }
 
@@ -102,5 +137,38 @@
 
   .status-missing {
     @apply text-red-600 bg-red-50 border-red-200;
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  /* Caption / helper text */
+  .caption {
+    @apply text-sm text-muted-foreground;
+  }
+
+  /* Error state */
+  .input-error {
+    @apply border-red-500;
+  }
+  .error-message {
+    @apply text-sm text-red-600 mt-1;
+  }
+}
+
+@layer utilities {
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+  .cursor-text {
+    cursor: text !important;
+  }
+  .cursor-not-allowed {
+    cursor: not-allowed !important;
+  }
+  .cursor-default {
+    cursor: default !important;
   }
 }

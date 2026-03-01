@@ -7,45 +7,37 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export interface DocumentReference {
-    documentType: string;
-    uploadStatus: boolean;
-    fileName: string;
-}
-export interface MasterUserRecord {
-    dob: string;
-    documents: Array<DocumentReference>;
-    academics: Array<AcademicRecord>;
+export interface UserProfile {
     name: string;
     email: string;
-    gender: Gender;
-    category: Category;
-    career: Array<CareerAchievement>;
 }
-export interface Scholarship {
-    id: bigint;
-    title: string;
-    provider: string;
-    requiredDocuments: Array<string>;
-    description: string;
-    deadline: string;
-    eligibility: {
-        category: Category;
-        requiredSkills: Array<string>;
-        minPercentage: number;
-        incomeLimit: bigint;
-    };
+export interface DocumentRecord {
+    documentName: string;
+    documentType: DocumentType;
+    studentId: bigint;
+    uploadStatus: boolean;
+    owner: Principal;
+    documentId: bigint;
+    remarks: string;
+    verificationStatus: string;
+    uploadedAt: bigint;
+    fileUrl: string;
+}
+export interface ScholarshipApplication {
+    studentId: bigint;
+    applicationId: bigint;
+    owner: Principal;
+    rejectionReason: string;
+    lastUpdated: bigint;
+    applicationStatus: string;
+    appliedDate: bigint;
+    scholarshipId: bigint;
 }
 export interface CareerAchievement {
     duration: string;
     role: string;
     employer: string;
     skills: Array<string>;
-}
-export interface EligibilityCheckResult {
-    missingDocuments: Array<string>;
-    isEligible: boolean;
-    unmetRequirements: Array<string>;
 }
 export interface AcademicRecord {
     marksheetRef?: string;
@@ -54,28 +46,76 @@ export interface AcademicRecord {
     degree: string;
     percentage: number;
 }
-export interface ProfileCompletionResult {
-    completionPercentage: number;
-    missingFields: Array<string>;
+export interface DocumentReference {
+    documentType: string;
+    uploadStatus: boolean;
+    fileName: string;
 }
-export interface ScholarshipApplication {
-    status: ApplicationStatus;
-    userId: Principal;
-    filledFields: MasterUserRecord;
-    scholarshipId: bigint;
+export interface Scholarship {
+    id: bigint;
+    title: string;
+    provider: string;
+    requiredDocuments: Array<string>;
+    eligibleCategories: Array<string>;
+    description: string;
+    deadline: bigint;
+    isActive: boolean;
+    eligibility: {
+        category: Category;
+        requiredSkills: Array<string>;
+        minPercentage: number;
+        incomeLimit: bigint;
+    };
+    incomeLimit: bigint;
+    eligibleCourseLevels: Array<string>;
 }
-export enum ApplicationStatus {
-    submitted = "submitted",
-    underReview = "underReview",
-    approved = "approved",
-    rejected = "rejected",
-    draft = "draft"
+export interface EligibilityCheckResult {
+    missingDocuments: Array<string>;
+    eligibilityStatus: string;
+    readinessScore: bigint;
+    unmetRequirements: Array<string>;
+    riskLevel: string;
+    urgentAlert: boolean;
+}
+export interface Student {
+    profileCompletionPercentage: bigint;
+    instituteName: string;
+    documents: Array<DocumentReference>;
+    studentId: bigint;
+    courseLevel: string;
+    academicRecords: Array<AcademicRecord>;
+    owner: Principal;
+    disabilityStatus: DisabilityStatus;
+    createdAt: bigint;
+    fullName: string;
+    mobileNumber: string;
+    careerAchievements: Array<CareerAchievement>;
+    email: string;
+    district: string;
+    updatedAt: bigint;
+    state: string;
+    currentYear: bigint;
+    gender: Gender;
+    category: Category;
+    courseName: string;
+    annualFamilyIncome: string;
 }
 export enum Category {
     sc = "sc",
     st = "st",
     obc = "obc",
     general = "general"
+}
+export enum DisabilityStatus {
+    none = "none",
+    hearingImpaired = "hearingImpaired",
+    physicalImpaired = "physicalImpaired",
+    sightImpaired = "sightImpaired"
+}
+export enum DocumentType {
+    Mandatory = "Mandatory",
+    Conditional = "Conditional",
+    Optional = "Optional"
 }
 export enum Gender {
     other = "other",
@@ -88,65 +128,25 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
-    /**
-     * / Apply to a scholarship. Requires #user role.
-     */
-    applyToScholarship(scholarshipId: bigint, application: ScholarshipApplication): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    /**
-     * / Return a pre-populated application form from the user's Master User Record.
-     * / Caller must be the owner of the record or an admin, because this exposes
-     * / private personal, academic, and career data.
-     */
-    autoFillApplication(scholarshipId: bigint, user: Principal): Promise<MasterUserRecord | null>;
-    /**
-     * / Check eligibility of a user for a scholarship.
-     * / Caller must be the owner of the record or an admin, because the result
-     * / exposes private academic and career data.
-     */
-    checkEligibility(scholarshipId: bigint, user: Principal): Promise<EligibilityCheckResult>;
-    /**
-     * / Create a new scholarship. Admin only.
-     */
-    createScholarship(scholarship: Scholarship): Promise<bigint>;
-    /**
-     * / Get the calling user's own Master User Record.
-     */
-    getCallerUserProfile(): Promise<MasterUserRecord | null>;
+    createApplication(studentId: bigint, scholarshipId: bigint): Promise<bigint>;
+    createScholarship(title: string, provider: string, deadline: bigint, description: string, requiredDocuments: Array<string>, incomeLimit: bigint, eligibleCategories: Array<string>, eligibleCourseLevels: Array<string>, isActive: boolean): Promise<bigint>;
+    getApplicationsByStudent(studentId: bigint): Promise<Array<ScholarshipApplication>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    /**
-     * / Calculate the profile completion score for a user.
-     * / Caller must be the owner of the record or an admin, because the result
-     * / reveals which private fields are missing.
-     */
-    getProfileCompletion(user: Principal): Promise<ProfileCompletionResult>;
-    /**
-     * / Get a single scholarship by id. Public — no auth required.
-     */
-    getScholarship(id: bigint): Promise<Scholarship>;
-    /**
-     * / Retrieve all applications for a user. Caller must be the owner or an admin.
-     */
-    getUserApplications(user: Principal): Promise<Array<ScholarshipApplication>>;
-    /**
-     * / Fetch another user's profile. Caller must be the owner or an admin.
-     */
-    getUserProfile(user: Principal): Promise<MasterUserRecord | null>;
-    /**
-     * / Retrieve a user record. Caller must be the owner or an admin.
-     */
-    getUserRecord(user: Principal): Promise<MasterUserRecord | null>;
+    getDocumentsByStudent(studentId: bigint): Promise<Array<DocumentRecord>>;
+    getEligibilityInsights(studentId: bigint, scholarshipId: bigint): Promise<EligibilityCheckResult>;
+    getMyApplications(): Promise<Array<ScholarshipApplication>>;
+    getMyStudent(): Promise<Student | null>;
+    getScholarshipById(scholarshipId: bigint): Promise<Scholarship | null>;
+    getScholarships(): Promise<Array<Scholarship>>;
+    getStudent(studentId: bigint): Promise<Student | null>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    /**
-     * / List all scholarships. Public — no auth required.
-     */
-    listScholarships(): Promise<Array<Scholarship>>;
-    /**
-     * / Save/update the calling user's own Master User Record.
-     */
-    saveCallerUserProfile(record: MasterUserRecord): Promise<void>;
-    /**
-     * / Update the calling user's own Master User Record.
-     */
-    updateUserRecord(record: MasterUserRecord): Promise<void>;
+    registerStudent(fullName: string, email: string, mobile: string, course: string, category: string, income: string): Promise<bigint>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateApplicationStatus(applicationId: bigint, applicationStatus: string, rejectionReason: string): Promise<void>;
+    updateDocumentUploadStatus(documentId: bigint, uploadStatus: boolean, fileUrl: string): Promise<void>;
+    updateDocumentVerificationStatus(documentId: bigint, verificationStatus: string, remarks: string): Promise<void>;
+    uploadDocument(studentId: bigint, documentName: string, filePath: string): Promise<string>;
 }

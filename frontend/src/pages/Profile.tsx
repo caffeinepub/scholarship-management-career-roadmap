@@ -1,233 +1,427 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTranslation } from '../hooks/useTranslation';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useQueries';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Save, Loader2, User } from 'lucide-react';
-import { toast } from 'sonner';
-import { Gender, Category } from '../backend';
-import type { MasterUserRecord } from '../backend';
-import ProfileCompletionMeter from '../components/ProfileCompletionMeter';
-import { useGetProfileCompletion } from '../hooks/useQueries';
+import { User, Save, CheckCircle, AlertCircle, Loader2, Info } from 'lucide-react';
+import {
+  useGetMyStudent,
+  useRegisterStudent,
+} from '../hooks/useQueries';
+
+interface ProfileFormData {
+  fullName: string;
+  email: string;
+  mobileNumber: string;
+  category: string;
+  annualFamilyIncome: string;
+  courseName: string;
+  // Extended fields (display only when student already exists)
+  gender: string;
+  disabilityStatus: string;
+  state: string;
+  district: string;
+  courseLevel: string;
+  instituteName: string;
+  currentYear: string;
+}
+
+const defaultForm: ProfileFormData = {
+  fullName: '',
+  email: '',
+  mobileNumber: '',
+  category: 'general',
+  annualFamilyIncome: 'Below 1L',
+  courseName: '',
+  gender: 'male',
+  disabilityStatus: 'none',
+  state: '',
+  district: '',
+  courseLevel: 'undergraduate',
+  instituteName: '',
+  currentYear: '1',
+};
+
+function computeProfileCompletion(form: ProfileFormData): number {
+  const fields = [
+    form.fullName,
+    form.email,
+    form.mobileNumber,
+    form.category,
+    form.annualFamilyIncome,
+    form.courseName,
+    form.gender,
+    form.state,
+    form.district,
+    form.courseLevel,
+    form.instituteName,
+    form.currentYear,
+  ];
+  const filled = fields.filter((f) => f && f.trim() !== '').length;
+  return Math.round((filled / fields.length) * 100);
+}
 
 export default function Profile() {
-  const { t } = useTranslation();
-  const { identity } = useInternetIdentity();
-  const navigate = useNavigate();
+  const { data: student, isLoading: studentLoading } = useGetMyStudent();
+  const registerStudent = useRegisterStudent();
 
-  const { data: profile, isLoading } = useGetCallerUserProfile();
-  const { data: completion } = useGetProfileCompletion();
-  const { mutateAsync: saveProfile, isPending: saving } = useSaveCallerUserProfile();
+  const [form, setForm] = useState<ProfileFormData>(defaultForm);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState<Gender>(Gender.male);
-  const [category, setCategory] = useState<Category>(Category.general);
-  const [initialized, setInitialized] = useState(false);
-
+  // Pre-populate form from backend data
   useEffect(() => {
-    if (profile && !initialized) {
-      setInitialized(true);
-      setName(profile.name);
-      setEmail(profile.email);
-      setDob(profile.dob);
-      setGender(profile.gender);
-      setCategory(profile.category);
+    if (student) {
+      setForm({
+        fullName: student.fullName,
+        email: student.email,
+        mobileNumber: student.mobileNumber,
+        category: student.category as string,
+        annualFamilyIncome: student.annualFamilyIncome,
+        courseName: student.courseName,
+        gender: student.gender as string,
+        disabilityStatus: student.disabilityStatus as string,
+        state: student.state,
+        district: student.district,
+        courseLevel: student.courseLevel,
+        instituteName: student.instituteName,
+        currentYear: String(student.currentYear),
+      });
     }
-  }, [profile, initialized]);
+  }, [student]);
 
-  if (!identity) {
-    navigate({ to: '/login' });
-    return null;
-  }
+  const profileCompletion = computeProfileCompletion(form);
+  const isSaving = registerStudent.isPending;
+  const isExistingStudent = !!student;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setSaveSuccess(false);
+    setSaveError('');
+  };
 
   const handleSave = async () => {
-    if (!name.trim()) {
-      toast.error('Name is required');
-      return;
-    }
+    if (isExistingStudent) return; // Profile already registered; no update endpoint available
+    setSaveSuccess(false);
+    setSaveError('');
 
-    const updatedProfile: MasterUserRecord = {
-      name: name.trim(),
-      email: email.trim(),
-      dob,
-      gender,
-      category,
-      academics: profile?.academics ?? [],
-      career: profile?.career ?? [],
-      documents: profile?.documents ?? [],
-    };
+    // Validate required fields
+    if (!form.fullName.trim()) { setSaveError('Full name is required.'); return; }
+    if (!form.email.trim()) { setSaveError('Email is required.'); return; }
+    if (!form.mobileNumber.trim()) { setSaveError('Mobile number is required.'); return; }
+    if (!form.courseName.trim()) { setSaveError('Course name is required.'); return; }
 
     try {
-      await saveProfile(updatedProfile);
-      toast.success(t('profile.saved'));
-    } catch {
-      toast.error(t('common.error'));
+      await registerStudent.mutateAsync({
+        fullName: form.fullName,
+        email: form.email,
+        mobile: form.mobileNumber,
+        course: form.courseName,
+        category: form.category,
+        income: form.annualFamilyIncome,
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save profile');
     }
   };
 
+  const completionColor =
+    profileCompletion >= 80
+      ? 'text-green-600'
+      : profileCompletion >= 50
+        ? 'text-yellow-600'
+        : 'text-red-500';
+
+  const completionBg =
+    profileCompletion >= 80
+      ? 'bg-green-500'
+      : profileCompletion >= 50
+        ? 'bg-yellow-500'
+        : 'bg-red-500';
+
+  if (studentLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading profile...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-teal-900">{t('profile.title')}</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Manage your personal information
-        </p>
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <User className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">My Profile</h1>
+          <p className="text-sm text-muted-foreground">Manage your personal and academic information</p>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="space-y-4">
-          <Skeleton className="h-32 rounded-xl" />
-          <Skeleton className="h-64 rounded-xl" />
+      {/* Registered notice */}
+      {isExistingStudent && (
+        <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl p-4">
+          <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-blue-800 text-sm">Profile Registered</p>
+            <p className="text-xs text-blue-700 mt-0.5">
+              Your student profile is saved on-chain. Contact support if you need to update your details.
+            </p>
+          </div>
         </div>
-      ) : (
-        <>
-          {/* Profile Completion */}
-          <Card className="border-teal-100 shadow-sm">
-            <CardContent className="p-5 flex items-center gap-6">
-              <ProfileCompletionMeter
-                completionPercentage={completion?.completionPercentage ?? 0}
-                missingItems={completion?.missingFields ?? []}
-                size={100}
-              />
-              <div>
-                <h3 className="font-semibold text-teal-900 mb-1">{t('profile.completion')}</h3>
-                <p className="text-sm text-gray-500">
-                  {completion?.missingFields.length === 0
-                    ? 'Your profile is complete!'
-                    : `${completion?.missingFields.length ?? 0} items still needed`}
-                </p>
-                {completion && completion.missingFields.length > 0 && (
-                  <ul className="mt-2 space-y-0.5">
-                    {completion.missingFields.slice(0, 3).map((item, i) => (
-                      <li key={i} className="text-xs text-amber-600">
-                        • {item}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Personal Info Form */}
-          <Card className="border-teal-100 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-teal-800 flex items-center gap-2">
-                <User className="h-4 w-4" />
-                {t('profile.personalInfo')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-600">{t('profile.name')} *</Label>
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your full name"
-                    className="border-gray-200 focus:border-teal-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-600">{t('profile.email')}</Label>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="border-gray-200 focus:border-teal-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-600">{t('profile.dob')}</Label>
-                  <Input
-                    type="date"
-                    value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    className="border-gray-200 focus:border-teal-400"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-600">{t('profile.gender')}</Label>
-                  <Select value={gender} onValueChange={(v) => setGender(v as Gender)}>
-                    <SelectTrigger className="border-gray-200">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={Gender.male}>{t('profile.male')}</SelectItem>
-                      <SelectItem value={Gender.female}>{t('profile.female')}</SelectItem>
-                      <SelectItem value={Gender.other}>{t('profile.other')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-gray-600">{t('profile.category')}</Label>
-                  <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
-                    <SelectTrigger className="border-gray-200">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={Category.general}>{t('scholarships.filter.general')}</SelectItem>
-                      <SelectItem value={Category.obc}>{t('scholarships.filter.obc')}</SelectItem>
-                      <SelectItem value={Category.sc}>{t('scholarships.filter.sc')}</SelectItem>
-                      <SelectItem value={Category.st}>{t('scholarships.filter.st')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="bg-teal-700 hover:bg-teal-800 text-white gap-2"
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  {saving ? t('profile.saving') : t('profile.save')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Principal ID */}
-          <Card className="border-gray-100 shadow-sm">
-            <CardContent className="p-4">
-              <p className="text-xs font-semibold text-gray-500 mb-1">Principal ID</p>
-              <p className="text-xs text-gray-400 font-mono break-all">
-                {identity?.getPrincipal().toString()}
-              </p>
-            </CardContent>
-          </Card>
-        </>
       )}
 
-      {/* Footer */}
-      <footer className="text-center py-4 text-gray-400 text-xs border-t border-gray-100">
-        © {new Date().getFullYear()} ScholarPath · Built with ❤️ using{' '}
-        <a
-          href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-            window.location.hostname || 'scholarpath'
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-teal-600 hover:underline"
-        >
-          caffeine.ai
-        </a>
-      </footer>
+      {/* Profile Completion Meter */}
+      <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-semibold text-foreground">Profile Completion</span>
+          <span className={`font-bold text-lg ${completionColor}`}>{profileCompletion}%</span>
+        </div>
+        <div className="w-full bg-muted rounded-full h-3">
+          <div
+            className={`h-3 rounded-full transition-all duration-500 ${completionBg}`}
+            style={{ width: `${profileCompletion}%` }}
+          />
+        </div>
+        {profileCompletion < 100 && (
+          <p className="text-xs text-muted-foreground mt-2">
+            Complete your profile to improve your scholarship readiness score.
+          </p>
+        )}
+        {profileCompletion === 100 && (
+          <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" /> Profile is 100% complete!
+          </p>
+        )}
+      </div>
+
+      {/* Personal Information */}
+      <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h2 className="font-semibold text-foreground text-lg border-b border-border pb-2">
+          Personal Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Full Name</label>
+            <input
+              name="fullName"
+              value={form.fullName}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Email</label>
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter your email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Mobile Number</label>
+            <input
+              name="mobileNumber"
+              value={form.mobileNumber}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter mobile number"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Gender</label>
+            <select
+              name="gender"
+              value={form.gender}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="general">General</option>
+              <option value="obc">OBC</option>
+              <option value="sc">SC</option>
+              <option value="st">ST</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Disability Status</label>
+            <select
+              name="disabilityStatus"
+              value={form.disabilityStatus}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="none">None</option>
+              <option value="hearingImpaired">Hearing Impaired</option>
+              <option value="sightImpaired">Sight Impaired</option>
+              <option value="physicalImpaired">Physical Impaired</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Annual Family Income</label>
+            <select
+              name="annualFamilyIncome"
+              value={form.annualFamilyIncome}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="Below 1L">Below ₹1 Lakh</option>
+              <option value="1L-2.5L">₹1L – ₹2.5L</option>
+              <option value="2.5L-5L">₹2.5L – ₹5L</option>
+              <option value="5L-8L">₹5L – ₹8L</option>
+              <option value="Above 8L">Above ₹8L</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Location */}
+      <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h2 className="font-semibold text-foreground text-lg border-b border-border pb-2">Location</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">State</label>
+            <input
+              name="state"
+              value={form.state}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter your state"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">District</label>
+            <input
+              name="district"
+              value={form.district}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter your district"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Academic Information */}
+      <div className="bg-card border border-border rounded-xl p-5 shadow-sm space-y-4">
+        <h2 className="font-semibold text-foreground text-lg border-b border-border pb-2">
+          Academic Information
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Course Name</label>
+            <input
+              name="courseName"
+              value={form.courseName}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="e.g. B.Tech Computer Science"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Course Level</label>
+            <select
+              name="courseLevel"
+              value={form.courseLevel}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="undergraduate">Undergraduate</option>
+              <option value="postgraduate">Postgraduate</option>
+              <option value="diploma">Diploma</option>
+              <option value="phd">PhD</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Institute Name</label>
+            <input
+              name="instituteName"
+              value={form.instituteName}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              placeholder="Enter institute name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1">Current Year</label>
+            <select
+              name="currentYear"
+              value={form.currentYear}
+              onChange={handleChange}
+              disabled={isExistingStudent}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button — only shown when no student record exists yet */}
+      {!isExistingStudent && (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Registering...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Register Profile
+              </>
+            )}
+          </button>
+          {saveSuccess && (
+            <span className="flex items-center gap-1 text-green-600 text-sm font-medium">
+              <CheckCircle className="w-4 h-4" /> Profile registered successfully!
+            </span>
+          )}
+          {saveError && (
+            <span className="flex items-center gap-1 text-red-500 text-sm font-medium">
+              <AlertCircle className="w-4 h-4" /> {saveError}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

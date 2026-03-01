@@ -1,151 +1,144 @@
 import React, { useState, useMemo } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTranslation } from '../hooks/useTranslation';
-import { useListScholarships, useCheckEligibility } from '../hooks/useQueries';
+import { Search, Filter, Loader2, AlertCircle } from 'lucide-react';
 import ScholarshipCard from '../components/ScholarshipCard';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Filter, GraduationCap } from 'lucide-react';
-import type { Scholarship } from '../backend';
-
-// Individual card with eligibility check
-function ScholarshipCardWithEligibility({
-  scholarship,
-  onApplyClick,
-}: {
-  scholarship: Scholarship;
-  onApplyClick: (id: bigint) => void;
-}) {
-  const { data: eligibility } = useCheckEligibility(scholarship.id);
-  return (
-    <ScholarshipCard
-      scholarship={scholarship}
-      isEligible={eligibility?.isEligible ?? null}
-      onApplyClick={onApplyClick}
-    />
-  );
-}
+import { useGetScholarships } from '../hooks/useQueries';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function Scholarships() {
-  const { t } = useTranslation();
-  const { identity } = useInternetIdentity();
+  const { data: scholarships = [], isLoading, error } = useGetScholarships();
   const navigate = useNavigate();
-  const { data: scholarships, isLoading } = useListScholarships();
 
-  const [search, setSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [providerFilter, setProviderFilter] = useState('');
+  const [providerFilter, setProviderFilter] = useState('all');
 
-  // All hooks must be called before any conditional returns
+  const providers = useMemo(
+    () => ['all', ...Array.from(new Set(scholarships.map((s) => s.provider)))],
+    [scholarships],
+  );
+
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    scholarships.forEach((s) => s.eligibleCategories.forEach((c) => cats.add(c)));
+    return ['all', ...Array.from(cats)];
+  }, [scholarships]);
+
   const filtered = useMemo(() => {
-    if (!scholarships) return [];
     return scholarships.filter((s) => {
-      const matchSearch =
-        !search ||
-        s.title.toLowerCase().includes(search.toLowerCase()) ||
-        s.provider.toLowerCase().includes(search.toLowerCase()) ||
-        s.description.toLowerCase().includes(search.toLowerCase());
+      const matchesSearch =
+        !searchQuery ||
+        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchCategory = categoryFilter === 'all' || s.eligibility.category === categoryFilter;
+      const matchesCategory =
+        categoryFilter === 'all' || s.eligibleCategories.includes(categoryFilter);
 
-      const matchProvider =
-        !providerFilter || s.provider.toLowerCase().includes(providerFilter.toLowerCase());
+      const matchesProvider = providerFilter === 'all' || s.provider === providerFilter;
 
-      return matchSearch && matchCategory && matchProvider;
+      return matchesSearch && matchesCategory && matchesProvider;
     });
-  }, [scholarships, search, categoryFilter, providerFilter]);
+  }, [scholarships, searchQuery, categoryFilter, providerFilter]);
 
-  if (!identity) {
-    navigate({ to: '/login' });
-    return null;
-  }
+  const handleApply = (scholarshipId: string) => {
+    navigate({ to: `/scholarships/${scholarshipId}` });
+  };
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-teal-900">{t('scholarships.title')}</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          {scholarships?.length ?? 0} scholarships available
+        <h1 className="text-2xl font-bold text-foreground">Browse Scholarships</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Find and apply for scholarships that match your profile
         </p>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-xl border border-teal-100 p-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('scholarships.search')}
-              className="pl-9 border-gray-200 focus:border-teal-400"
-            />
+      {/* Search & Filters */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search scholarships..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          />
+        </div>
+        <div className="flex gap-2">
+          <div className="relative">
+            <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="pl-8 pr-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c === 'all' ? 'All Categories' : c.toUpperCase()}
+                </option>
+              ))}
+            </select>
           </div>
-
-          <div className="flex gap-3">
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-40 border-gray-200">
-                <Filter className="h-3.5 w-3.5 mr-1.5 text-gray-400" />
-                <SelectValue placeholder={t('scholarships.filter.category')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('scholarships.filter.all')}</SelectItem>
-                <SelectItem value="general">{t('scholarships.filter.general')}</SelectItem>
-                <SelectItem value="obc">{t('scholarships.filter.obc')}</SelectItem>
-                <SelectItem value="sc">{t('scholarships.filter.sc')}</SelectItem>
-                <SelectItem value="st">{t('scholarships.filter.st')}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Input
-              value={providerFilter}
-              onChange={(e) => setProviderFilter(e.target.value)}
-              placeholder={t('scholarships.filter.provider')}
-              className="w-40 border-gray-200 focus:border-teal-400"
-            />
-          </div>
+          <select
+            value={providerFilter}
+            onChange={(e) => setProviderFilter(e.target.value)}
+            className="px-3 py-2 border border-border rounded-lg text-sm bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+          >
+            {providers.map((p) => (
+              <option key={p} value={p}>
+                {p === 'all' ? 'All Providers' : p}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Results */}
-      {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-56 rounded-xl" />
-          ))}
+      {/* Loading */}
+      {isLoading && (
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Loading scholarships...</span>
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500">{t('scholarships.noResults')}</p>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl p-4">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <p className="text-sm">Failed to load scholarships. Please try again.</p>
         </div>
-      ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      )}
+
+      {/* Results count */}
+      {!isLoading && !error && (
+        <p className="text-sm text-muted-foreground">
+          Showing {filtered.length} of {scholarships.length} scholarships
+        </p>
+      )}
+
+      {/* Scholarship grid */}
+      {!isLoading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((scholarship) => (
-            <ScholarshipCardWithEligibility
+            <ScholarshipCard
               key={scholarship.id.toString()}
               scholarship={scholarship}
-              onApplyClick={(id) => navigate({ to: '/scholarships/$id', params: { id: id.toString() } })}
+              onApply={handleApply}
             />
           ))}
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="text-center py-4 text-gray-400 text-xs border-t border-gray-100 mt-4">
-        © {new Date().getFullYear()} {t('nav.appName')} · Built with ❤️ using{' '}
-        <a
-          href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname || 'scholarpath')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-teal-600 hover:underline"
-        >
-          caffeine.ai
-        </a>
-      </footer>
+      {/* Empty state */}
+      {!isLoading && !error && filtered.length === 0 && scholarships.length > 0 && (
+        <div className="text-center py-12">
+          <Search className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-semibold text-foreground">No scholarships found</h3>
+          <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filters.</p>
+        </div>
+      )}
     </div>
   );
 }

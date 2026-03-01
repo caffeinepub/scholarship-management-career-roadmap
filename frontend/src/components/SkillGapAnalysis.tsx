@@ -1,8 +1,6 @@
 import React from 'react';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { useTranslation } from '../hooks/useTranslation';
-import { useCheckEligibility } from '../hooks/useQueries';
-import { useGetCallerUserProfile } from '../hooks/useQueries';
+import { useGetEligibilityInsights, useGetMyStudent } from '../hooks/useQueries';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SkillGapAnalysisProps {
@@ -11,21 +9,23 @@ interface SkillGapAnalysisProps {
 }
 
 export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }: SkillGapAnalysisProps) {
-  const { t } = useTranslation();
-  const { data: profile } = useGetCallerUserProfile();
-  const { data: eligibility, isLoading } = useCheckEligibility(scholarshipId);
+  const { data: student } = useGetMyStudent();
+  const studentId = student ? student.studentId : null;
 
-  const userSkills: string[] = profile?.career.flatMap((c) => c.skills) ?? [];
+  const { data: insights, isLoading } = useGetEligibilityInsights(studentId, scholarshipId);
+
+  // Derive user skills from student's career achievements if available
+  const userSkills: string[] = student?.careerAchievements.flatMap((c) => c.skills) ?? [];
   const required = requiredSkills.length > 0 ? requiredSkills : [];
 
   if (!scholarshipId) {
     return (
       <Card className="border-teal-100">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-teal-800">{t('skillGap.title')}</CardTitle>
+          <CardTitle className="text-base font-semibold text-teal-800">Skill Gap Analysis</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-gray-500 text-center py-4">{t('skillGap.selectScholarship')}</p>
+          <p className="text-sm text-gray-500 text-center py-4">Select a scholarship to see skill gap analysis.</p>
         </CardContent>
       </Card>
     );
@@ -35,7 +35,7 @@ export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }:
     return (
       <Card className="border-teal-100">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold text-teal-800">{t('skillGap.title')}</CardTitle>
+          <CardTitle className="text-base font-semibold text-teal-800">Skill Gap Analysis</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center py-6">
           <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
@@ -45,7 +45,7 @@ export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }:
   }
 
   const missingSkills =
-    eligibility?.unmetRequirements
+    insights?.unmetRequirements
       .filter((r) => r.startsWith('Missing required skill:'))
       .map((r) => r.replace('Missing required skill: ', '')) ?? [];
 
@@ -54,14 +54,14 @@ export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }:
   return (
     <Card className="border-teal-100">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold text-teal-800">{t('skillGap.title')}</CardTitle>
+        <CardTitle className="text-base font-semibold text-teal-800">Skill Gap Analysis</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
           {/* Your Skills */}
           <div>
             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              {t('skillGap.yourSkills')}
+              Your Skills
             </h4>
             {userSkills.length === 0 ? (
               <p className="text-xs text-gray-400 italic">No skills added</p>
@@ -80,7 +80,7 @@ export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }:
           {/* Required Skills */}
           <div>
             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              {t('skillGap.requiredSkills')}
+              Required Skills
             </h4>
             {required.length === 0 ? (
               <p className="text-xs text-gray-400 italic">No specific skills required</p>
@@ -111,11 +111,11 @@ export default function SkillGapAnalysis({ scholarshipId, requiredSkills = [] }:
           <div className="mt-4 pt-3 border-t border-gray-100 flex gap-3">
             <span className="inline-flex items-center gap-1 text-xs bg-emerald-50 text-emerald-700 px-2 py-1 rounded-full font-medium">
               <CheckCircle className="h-3 w-3" />
-              {matchedSkills.length} {t('skillGap.matched')}
+              {matchedSkills.length} matched
             </span>
             <span className="inline-flex items-center gap-1 text-xs bg-red-50 text-red-700 px-2 py-1 rounded-full font-medium">
               <AlertCircle className="h-3 w-3" />
-              {missingSkills.length} {t('skillGap.missing')}
+              {missingSkills.length} missing
             </span>
           </div>
         )}

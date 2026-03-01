@@ -1,111 +1,120 @@
-import { RouterProvider, createRouter, createRootRoute, createRoute, Outlet, redirect } from '@tanstack/react-router';
-import { Toaster } from '@/components/ui/sonner';
+import React from 'react';
+import {
+  createRouter,
+  createRoute,
+  createRootRoute,
+  RouterProvider,
+  Outlet,
+} from '@tanstack/react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { Toaster } from '@/components/ui/sonner';
 import DashboardLayout from './components/DashboardLayout';
+import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import Scholarships from './pages/Scholarships';
 import ScholarshipDetail from './pages/ScholarshipDetail';
-import ResumeBuilder from './pages/ResumeBuilder';
 import Documents from './pages/Documents';
-import Profile from './pages/Profile';
 import MyApplications from './pages/MyApplications';
+import Profile from './pages/Profile';
+import ResumeBuilder from './pages/ResumeBuilder';
 import Help from './pages/Help';
-import LoginPage from './pages/LoginPage';
-import ChatbotWidget from './components/ChatbotWidget';
+import ProfileSetupModal from './components/ProfileSetupModal';
 
-// Root route
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ChatbotWidget />
-      <Toaster richColors position="top-right" />
-    </>
-  ),
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
 });
 
-// Login route
+// Root layout
+function RootLayout() {
+  return (
+    <>
+      <Outlet />
+      <ProfileSetupModal />
+      <Toaster />
+    </>
+  );
+}
+
+// Route definitions
+const rootRoute = createRootRoute({ component: RootLayout });
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
   component: LoginPage,
 });
 
-// Help route (public)
-const helpRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/help',
-  component: Help,
-});
-
-// Protected layout route
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'protected',
-  component: () => <DashboardLayout><Outlet /></DashboardLayout>,
+  component: DashboardLayout,
 });
 
-// Dashboard route
 const dashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/',
   component: Dashboard,
 });
 
-// Scholarships route
 const scholarshipsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/scholarships',
   component: Scholarships,
 });
 
-// Scholarship detail route
 const scholarshipDetailRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: '/scholarships/$id',
+  path: '/scholarships/$scholarshipId',
   component: ScholarshipDetail,
 });
 
-// Resume builder route
-const resumeBuilderRoute = createRoute({
-  getParentRoute: () => protectedRoute,
-  path: '/resume-builder',
-  component: ResumeBuilder,
-});
-
-// Documents route
 const documentsRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/documents',
   component: Documents,
 });
 
-// Profile route
+const applicationsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/applications',
+  component: MyApplications,
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/profile',
   component: Profile,
 });
 
-// My Applications route
-const myApplicationsRoute = createRoute({
+const resumeRoute = createRoute({
   getParentRoute: () => protectedRoute,
-  path: '/my-applications',
-  component: MyApplications,
+  path: '/resume',
+  component: ResumeBuilder,
+});
+
+const helpRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/help',
+  component: Help,
 });
 
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  helpRoute,
   protectedRoute.addChildren([
     dashboardRoute,
     scholarshipsRoute,
     scholarshipDetailRoute,
-    resumeBuilderRoute,
     documentsRoute,
+    applicationsRoute,
     profileRoute,
-    myApplicationsRoute,
+    resumeRoute,
+    helpRoute,
   ]),
 ]);
 
@@ -117,12 +126,12 @@ declare module '@tanstack/react-router' {
   }
 }
 
-function AppContent() {
+export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
-      <RouterProvider router={router} />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
-
-export default AppContent;

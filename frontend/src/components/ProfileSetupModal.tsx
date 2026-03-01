@@ -3,157 +3,99 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSaveCallerUserProfile } from '../hooks/useQueries';
-import { toast } from 'sonner';
-import { GraduationCap } from 'lucide-react';
-import { Gender, Category } from '../backend';
-import type { MasterUserRecord } from '../backend';
+import { Loader2, User } from 'lucide-react';
+import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 
 export default function ProfileSetupModal() {
-  const [open, setOpen] = useState(true);
+  const { identity } = useInternetIdentity();
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { mutate: saveProfile, isPending: isSaving } = useSaveCallerUserProfile();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [dob, setDob] = useState('');
-  const [gender, setGender] = useState<Gender>(Gender.male);
-  const [category, setCategory] = useState<Category>(Category.general);
-  const { mutateAsync: saveProfile, isPending } = useSaveCallerUserProfile();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isAuthenticated = !!identity;
+  const showModal = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!name.trim()) newErrors.name = 'Name is required';
+    if (!email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = 'Invalid email address';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error('Please enter your name');
-      return;
-    }
-
-    const record: MasterUserRecord = {
-      name: name.trim(),
-      email: email.trim(),
-      dob,
-      gender,
-      category,
-      academics: [],
-      career: [],
-      documents: [],
-    };
-
-    try {
-      await saveProfile(record);
-      toast.success('Profile created successfully!');
-      setOpen(false);
-    } catch {
-      toast.error('Failed to create profile. Please try again.');
-    }
+    if (!validate()) return;
+    saveProfile({ name: name.trim(), email: email.trim() });
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={showModal}>
       <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center">
-              <GraduationCap className="h-5 w-5 text-teal-700" />
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-teal-900">Complete Your Profile</DialogTitle>
-              <DialogDescription className="text-xs">
-                Tell us about yourself to get started
+              <DialogTitle className="text-xl">Welcome to ScholarPath!</DialogTitle>
+              <DialogDescription className="text-sm mt-0.5">
+                Let's set up your profile to get started.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          {/* Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="name" className="text-sm font-medium">
-              Full Name *
+            <Label htmlFor="setup-name" className="text-sm font-medium cursor-pointer">
+              Full Name <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="name"
+              id="setup-name"
+              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your full name"
-              required
-              className="border-gray-200 focus:border-teal-400"
+              className={`cursor-text transition-colors duration-150 ${errors.name ? 'border-red-500' : ''}`}
             />
+            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
           </div>
 
+          {/* Email */}
           <div className="space-y-1.5">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email Address
+            <Label htmlFor="setup-email" className="text-sm font-medium cursor-pointer">
+              Email Address <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="email"
+              id="setup-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your@email.com"
-              className="border-gray-200 focus:border-teal-400"
+              placeholder="Enter your email"
+              className={`cursor-text transition-colors duration-150 ${errors.email ? 'border-red-500' : ''}`}
             />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="dob" className="text-sm font-medium">
-              Date of Birth
-            </Label>
-            <Input
-              id="dob"
-              type="date"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-              className="border-gray-200 focus:border-teal-400"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Gender</Label>
-              <Select
-                value={gender}
-                onValueChange={(v) => setGender(v as Gender)}
-              >
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Gender.male}>Male</SelectItem>
-                  <SelectItem value={Gender.female}>Female</SelectItem>
-                  <SelectItem value={Gender.other}>Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Category</Label>
-              <Select
-                value={category}
-                onValueChange={(v) => setCategory(v as Category)}
-              >
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={Category.general}>General</SelectItem>
-                  <SelectItem value={Category.obc}>OBC</SelectItem>
-                  <SelectItem value={Category.sc}>SC</SelectItem>
-                  <SelectItem value={Category.st}>ST</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
           </div>
 
           <Button
             type="submit"
-            disabled={isPending}
-            className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold"
+            disabled={isSaving}
+            className="w-full cursor-pointer mt-2 hover:shadow-md transition-all duration-150 disabled:cursor-not-allowed"
           >
-            {isPending ? (
-              <span className="flex items-center gap-2">
-                <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Creating Profile...
-              </span>
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
             ) : (
-              'Create Profile & Continue'
+              'Complete Setup'
             )}
           </Button>
         </form>

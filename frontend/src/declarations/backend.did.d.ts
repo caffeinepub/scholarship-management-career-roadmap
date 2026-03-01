@@ -17,11 +17,6 @@ export interface AcademicRecord {
   'degree' : string,
   'percentage' : number,
 }
-export type ApplicationStatus = { 'submitted' : null } |
-  { 'underReview' : null } |
-  { 'approved' : null } |
-  { 'rejected' : null } |
-  { 'draft' : null };
 export interface CareerAchievement {
   'duration' : string,
   'role' : string,
@@ -32,128 +27,147 @@ export type Category = { 'sc' : null } |
   { 'st' : null } |
   { 'obc' : null } |
   { 'general' : null };
+export type DisabilityStatus = { 'none' : null } |
+  { 'hearingImpaired' : null } |
+  { 'physicalImpaired' : null } |
+  { 'sightImpaired' : null };
+export interface DocumentRecord {
+  'documentName' : string,
+  'documentType' : DocumentType,
+  'studentId' : bigint,
+  'uploadStatus' : boolean,
+  'owner' : Principal,
+  'documentId' : bigint,
+  'remarks' : string,
+  'verificationStatus' : string,
+  'uploadedAt' : bigint,
+  'fileUrl' : string,
+}
 export interface DocumentReference {
   'documentType' : string,
   'uploadStatus' : boolean,
   'fileName' : string,
 }
+export type DocumentType = { 'Mandatory' : null } |
+  { 'Conditional' : null } |
+  { 'Optional' : null };
 export interface EligibilityCheckResult {
   'missingDocuments' : Array<string>,
-  'isEligible' : boolean,
+  'eligibilityStatus' : string,
+  'readinessScore' : bigint,
   'unmetRequirements' : Array<string>,
+  'riskLevel' : string,
+  'urgentAlert' : boolean,
 }
 export type Gender = { 'other' : null } |
   { 'female' : null } |
   { 'male' : null };
-export interface MasterUserRecord {
-  'dob' : string,
-  'documents' : Array<DocumentReference>,
-  'academics' : Array<AcademicRecord>,
-  'name' : string,
-  'email' : string,
-  'gender' : Gender,
-  'category' : Category,
-  'career' : Array<CareerAchievement>,
-}
-export interface ProfileCompletionResult {
-  'completionPercentage' : number,
-  'missingFields' : Array<string>,
-}
 export interface Scholarship {
   'id' : bigint,
   'title' : string,
   'provider' : string,
   'requiredDocuments' : Array<string>,
+  'eligibleCategories' : Array<string>,
   'description' : string,
-  'deadline' : string,
+  'deadline' : bigint,
+  'isActive' : boolean,
   'eligibility' : {
     'category' : Category,
     'requiredSkills' : Array<string>,
     'minPercentage' : number,
     'incomeLimit' : bigint,
   },
+  'incomeLimit' : bigint,
+  'eligibleCourseLevels' : Array<string>,
 }
 export interface ScholarshipApplication {
-  'status' : ApplicationStatus,
-  'userId' : Principal,
-  'filledFields' : MasterUserRecord,
+  'studentId' : bigint,
+  'applicationId' : bigint,
+  'owner' : Principal,
+  'rejectionReason' : string,
+  'lastUpdated' : bigint,
+  'applicationStatus' : string,
+  'appliedDate' : bigint,
   'scholarshipId' : bigint,
 }
+export interface Student {
+  'profileCompletionPercentage' : bigint,
+  'instituteName' : string,
+  'documents' : Array<DocumentReference>,
+  'studentId' : bigint,
+  'courseLevel' : string,
+  'academicRecords' : Array<AcademicRecord>,
+  'owner' : Principal,
+  'disabilityStatus' : DisabilityStatus,
+  'createdAt' : bigint,
+  'fullName' : string,
+  'mobileNumber' : string,
+  'careerAchievements' : Array<CareerAchievement>,
+  'email' : string,
+  'district' : string,
+  'updatedAt' : bigint,
+  'state' : string,
+  'currentYear' : bigint,
+  'gender' : Gender,
+  'category' : Category,
+  'courseName' : string,
+  'annualFamilyIncome' : string,
+}
+export interface UserProfile { 'name' : string, 'email' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
-  /**
-   * / Apply to a scholarship. Requires #user role.
-   */
-  'applyToScholarship' : ActorMethod<
-    [bigint, ScholarshipApplication],
-    undefined
-  >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  /**
-   * / Return a pre-populated application form from the user's Master User Record.
-   * / Caller must be the owner of the record or an admin, because this exposes
-   * / private personal, academic, and career data.
-   */
-  'autoFillApplication' : ActorMethod<
-    [bigint, Principal],
-    [] | [MasterUserRecord]
+  'createApplication' : ActorMethod<[bigint, bigint], bigint>,
+  'createScholarship' : ActorMethod<
+    [
+      string,
+      string,
+      bigint,
+      string,
+      Array<string>,
+      bigint,
+      Array<string>,
+      Array<string>,
+      boolean,
+    ],
+    bigint
   >,
-  /**
-   * / Check eligibility of a user for a scholarship.
-   * / Caller must be the owner of the record or an admin, because the result
-   * / exposes private academic and career data.
-   */
-  'checkEligibility' : ActorMethod<[bigint, Principal], EligibilityCheckResult>,
-  /**
-   * / Create a new scholarship. Admin only.
-   */
-  'createScholarship' : ActorMethod<[Scholarship], bigint>,
-  /**
-   * / Get the calling user's own Master User Record.
-   */
-  'getCallerUserProfile' : ActorMethod<[], [] | [MasterUserRecord]>,
-  'getCallerUserRole' : ActorMethod<[], UserRole>,
-  /**
-   * / Calculate the profile completion score for a user.
-   * / Caller must be the owner of the record or an admin, because the result
-   * / reveals which private fields are missing.
-   */
-  'getProfileCompletion' : ActorMethod<[Principal], ProfileCompletionResult>,
-  /**
-   * / Get a single scholarship by id. Public — no auth required.
-   */
-  'getScholarship' : ActorMethod<[bigint], Scholarship>,
-  /**
-   * / Retrieve all applications for a user. Caller must be the owner or an admin.
-   */
-  'getUserApplications' : ActorMethod<
-    [Principal],
+  'getApplicationsByStudent' : ActorMethod<
+    [bigint],
     Array<ScholarshipApplication>
   >,
-  /**
-   * / Fetch another user's profile. Caller must be the owner or an admin.
-   */
-  'getUserProfile' : ActorMethod<[Principal], [] | [MasterUserRecord]>,
-  /**
-   * / Retrieve a user record. Caller must be the owner or an admin.
-   */
-  'getUserRecord' : ActorMethod<[Principal], [] | [MasterUserRecord]>,
+  'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
+  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getDocumentsByStudent' : ActorMethod<[bigint], Array<DocumentRecord>>,
+  'getEligibilityInsights' : ActorMethod<
+    [bigint, bigint],
+    EligibilityCheckResult
+  >,
+  'getMyApplications' : ActorMethod<[], Array<ScholarshipApplication>>,
+  'getMyStudent' : ActorMethod<[], [] | [Student]>,
+  'getScholarshipById' : ActorMethod<[bigint], [] | [Scholarship]>,
+  'getScholarships' : ActorMethod<[], Array<Scholarship>>,
+  'getStudent' : ActorMethod<[bigint], [] | [Student]>,
+  'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  /**
-   * / List all scholarships. Public — no auth required.
-   */
-  'listScholarships' : ActorMethod<[], Array<Scholarship>>,
-  /**
-   * / Save/update the calling user's own Master User Record.
-   */
-  'saveCallerUserProfile' : ActorMethod<[MasterUserRecord], undefined>,
-  /**
-   * / Update the calling user's own Master User Record.
-   */
-  'updateUserRecord' : ActorMethod<[MasterUserRecord], undefined>,
+  'registerStudent' : ActorMethod<
+    [string, string, string, string, string, string],
+    bigint
+  >,
+  'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'updateApplicationStatus' : ActorMethod<[bigint, string, string], undefined>,
+  'updateDocumentUploadStatus' : ActorMethod<
+    [bigint, boolean, string],
+    undefined
+  >,
+  'updateDocumentVerificationStatus' : ActorMethod<
+    [bigint, string, string],
+    undefined
+  >,
+  'uploadDocument' : ActorMethod<[bigint, string, string], string>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

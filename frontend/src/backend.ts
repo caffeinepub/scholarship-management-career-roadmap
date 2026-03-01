@@ -89,45 +89,37 @@ export class ExternalBlob {
         return this;
     }
 }
-export interface DocumentReference {
-    documentType: string;
-    uploadStatus: boolean;
-    fileName: string;
-}
-export interface MasterUserRecord {
-    dob: string;
-    documents: Array<DocumentReference>;
-    academics: Array<AcademicRecord>;
+export interface UserProfile {
     name: string;
     email: string;
-    gender: Gender;
-    category: Category;
-    career: Array<CareerAchievement>;
 }
-export interface Scholarship {
-    id: bigint;
-    title: string;
-    provider: string;
-    requiredDocuments: Array<string>;
-    description: string;
-    deadline: string;
-    eligibility: {
-        category: Category;
-        requiredSkills: Array<string>;
-        minPercentage: number;
-        incomeLimit: bigint;
-    };
+export interface DocumentRecord {
+    documentName: string;
+    documentType: DocumentType;
+    studentId: bigint;
+    uploadStatus: boolean;
+    owner: Principal;
+    documentId: bigint;
+    remarks: string;
+    verificationStatus: string;
+    uploadedAt: bigint;
+    fileUrl: string;
+}
+export interface ScholarshipApplication {
+    studentId: bigint;
+    applicationId: bigint;
+    owner: Principal;
+    rejectionReason: string;
+    lastUpdated: bigint;
+    applicationStatus: string;
+    appliedDate: bigint;
+    scholarshipId: bigint;
 }
 export interface CareerAchievement {
     duration: string;
     role: string;
     employer: string;
     skills: Array<string>;
-}
-export interface EligibilityCheckResult {
-    missingDocuments: Array<string>;
-    isEligible: boolean;
-    unmetRequirements: Array<string>;
 }
 export interface AcademicRecord {
     marksheetRef?: string;
@@ -136,28 +128,76 @@ export interface AcademicRecord {
     degree: string;
     percentage: number;
 }
-export interface ProfileCompletionResult {
-    completionPercentage: number;
-    missingFields: Array<string>;
+export interface DocumentReference {
+    documentType: string;
+    uploadStatus: boolean;
+    fileName: string;
 }
-export interface ScholarshipApplication {
-    status: ApplicationStatus;
-    userId: Principal;
-    filledFields: MasterUserRecord;
-    scholarshipId: bigint;
+export interface Scholarship {
+    id: bigint;
+    title: string;
+    provider: string;
+    requiredDocuments: Array<string>;
+    eligibleCategories: Array<string>;
+    description: string;
+    deadline: bigint;
+    isActive: boolean;
+    eligibility: {
+        category: Category;
+        requiredSkills: Array<string>;
+        minPercentage: number;
+        incomeLimit: bigint;
+    };
+    incomeLimit: bigint;
+    eligibleCourseLevels: Array<string>;
 }
-export enum ApplicationStatus {
-    submitted = "submitted",
-    underReview = "underReview",
-    approved = "approved",
-    rejected = "rejected",
-    draft = "draft"
+export interface EligibilityCheckResult {
+    missingDocuments: Array<string>;
+    eligibilityStatus: string;
+    readinessScore: bigint;
+    unmetRequirements: Array<string>;
+    riskLevel: string;
+    urgentAlert: boolean;
+}
+export interface Student {
+    profileCompletionPercentage: bigint;
+    instituteName: string;
+    documents: Array<DocumentReference>;
+    studentId: bigint;
+    courseLevel: string;
+    academicRecords: Array<AcademicRecord>;
+    owner: Principal;
+    disabilityStatus: DisabilityStatus;
+    createdAt: bigint;
+    fullName: string;
+    mobileNumber: string;
+    careerAchievements: Array<CareerAchievement>;
+    email: string;
+    district: string;
+    updatedAt: bigint;
+    state: string;
+    currentYear: bigint;
+    gender: Gender;
+    category: Category;
+    courseName: string;
+    annualFamilyIncome: string;
 }
 export enum Category {
     sc = "sc",
     st = "st",
     obc = "obc",
     general = "general"
+}
+export enum DisabilityStatus {
+    none = "none",
+    hearingImpaired = "hearingImpaired",
+    physicalImpaired = "physicalImpaired",
+    sightImpaired = "sightImpaired"
+}
+export enum DocumentType {
+    Mandatory = "Mandatory",
+    Conditional = "Conditional",
+    Optional = "Optional"
 }
 export enum Gender {
     other = "other",
@@ -171,69 +211,29 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    /**
-     * / Apply to a scholarship. Requires #user role.
-     */
-    applyToScholarship(scholarshipId: bigint, application: ScholarshipApplication): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    /**
-     * / Return a pre-populated application form from the user's Master User Record.
-     * / Caller must be the owner of the record or an admin, because this exposes
-     * / private personal, academic, and career data.
-     */
-    autoFillApplication(scholarshipId: bigint, user: Principal): Promise<MasterUserRecord | null>;
-    /**
-     * / Check eligibility of a user for a scholarship.
-     * / Caller must be the owner of the record or an admin, because the result
-     * / exposes private academic and career data.
-     */
-    checkEligibility(scholarshipId: bigint, user: Principal): Promise<EligibilityCheckResult>;
-    /**
-     * / Create a new scholarship. Admin only.
-     */
-    createScholarship(scholarship: Scholarship): Promise<bigint>;
-    /**
-     * / Get the calling user's own Master User Record.
-     */
-    getCallerUserProfile(): Promise<MasterUserRecord | null>;
+    createApplication(studentId: bigint, scholarshipId: bigint): Promise<bigint>;
+    createScholarship(title: string, provider: string, deadline: bigint, description: string, requiredDocuments: Array<string>, incomeLimit: bigint, eligibleCategories: Array<string>, eligibleCourseLevels: Array<string>, isActive: boolean): Promise<bigint>;
+    getApplicationsByStudent(studentId: bigint): Promise<Array<ScholarshipApplication>>;
+    getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
-    /**
-     * / Calculate the profile completion score for a user.
-     * / Caller must be the owner of the record or an admin, because the result
-     * / reveals which private fields are missing.
-     */
-    getProfileCompletion(user: Principal): Promise<ProfileCompletionResult>;
-    /**
-     * / Get a single scholarship by id. Public — no auth required.
-     */
-    getScholarship(id: bigint): Promise<Scholarship>;
-    /**
-     * / Retrieve all applications for a user. Caller must be the owner or an admin.
-     */
-    getUserApplications(user: Principal): Promise<Array<ScholarshipApplication>>;
-    /**
-     * / Fetch another user's profile. Caller must be the owner or an admin.
-     */
-    getUserProfile(user: Principal): Promise<MasterUserRecord | null>;
-    /**
-     * / Retrieve a user record. Caller must be the owner or an admin.
-     */
-    getUserRecord(user: Principal): Promise<MasterUserRecord | null>;
+    getDocumentsByStudent(studentId: bigint): Promise<Array<DocumentRecord>>;
+    getEligibilityInsights(studentId: bigint, scholarshipId: bigint): Promise<EligibilityCheckResult>;
+    getMyApplications(): Promise<Array<ScholarshipApplication>>;
+    getMyStudent(): Promise<Student | null>;
+    getScholarshipById(scholarshipId: bigint): Promise<Scholarship | null>;
+    getScholarships(): Promise<Array<Scholarship>>;
+    getStudent(studentId: bigint): Promise<Student | null>;
+    getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    /**
-     * / List all scholarships. Public — no auth required.
-     */
-    listScholarships(): Promise<Array<Scholarship>>;
-    /**
-     * / Save/update the calling user's own Master User Record.
-     */
-    saveCallerUserProfile(record: MasterUserRecord): Promise<void>;
-    /**
-     * / Update the calling user's own Master User Record.
-     */
-    updateUserRecord(record: MasterUserRecord): Promise<void>;
+    registerStudent(fullName: string, email: string, mobile: string, course: string, category: string, income: string): Promise<bigint>;
+    saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    updateApplicationStatus(applicationId: bigint, applicationStatus: string, rejectionReason: string): Promise<void>;
+    updateDocumentUploadStatus(documentId: bigint, uploadStatus: boolean, fileUrl: string): Promise<void>;
+    updateDocumentVerificationStatus(documentId: bigint, verificationStatus: string, remarks: string): Promise<void>;
+    uploadDocument(studentId: bigint, documentName: string, filePath: string): Promise<string>;
 }
-import type { AcademicRecord as _AcademicRecord, ApplicationStatus as _ApplicationStatus, CareerAchievement as _CareerAchievement, Category as _Category, DocumentReference as _DocumentReference, Gender as _Gender, MasterUserRecord as _MasterUserRecord, Scholarship as _Scholarship, ScholarshipApplication as _ScholarshipApplication, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { AcademicRecord as _AcademicRecord, CareerAchievement as _CareerAchievement, Category as _Category, DisabilityStatus as _DisabilityStatus, DocumentRecord as _DocumentRecord, DocumentReference as _DocumentReference, DocumentType as _DocumentType, Gender as _Gender, Scholarship as _Scholarship, Student as _Student, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -250,172 +250,200 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async applyToScholarship(arg0: bigint, arg1: ScholarshipApplication): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.applyToScholarship(arg0, to_candid_ScholarshipApplication_n1(this._uploadFile, this._downloadFile, arg1));
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.applyToScholarship(arg0, to_candid_ScholarshipApplication_n1(this._uploadFile, this._downloadFile, arg1));
-            return result;
-        }
-    }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n14(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n14(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
-    async autoFillApplication(arg0: bigint, arg1: Principal): Promise<MasterUserRecord | null> {
+    async createApplication(arg0: bigint, arg1: bigint): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.autoFillApplication(arg0, arg1);
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.autoFillApplication(arg0, arg1);
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async checkEligibility(arg0: bigint, arg1: Principal): Promise<EligibilityCheckResult> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.checkEligibility(arg0, arg1);
+                const result = await this.actor.createApplication(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.checkEligibility(arg0, arg1);
+            const result = await this.actor.createApplication(arg0, arg1);
             return result;
         }
     }
-    async createScholarship(arg0: Scholarship): Promise<bigint> {
+    async createScholarship(arg0: string, arg1: string, arg2: bigint, arg3: string, arg4: Array<string>, arg5: bigint, arg6: Array<string>, arg7: Array<string>, arg8: boolean): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.createScholarship(to_candid_Scholarship_n27(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.createScholarship(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createScholarship(to_candid_Scholarship_n27(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.createScholarship(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);
             return result;
         }
     }
-    async getCallerUserProfile(): Promise<MasterUserRecord | null> {
+    async getApplicationsByStudent(arg0: bigint): Promise<Array<ScholarshipApplication>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getApplicationsByStudent(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getApplicationsByStudent(arg0);
+            return result;
+        }
+    }
+    async getCallerUserProfile(): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n30(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n30(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n4(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getProfileCompletion(arg0: Principal): Promise<ProfileCompletionResult> {
+    async getDocumentsByStudent(arg0: bigint): Promise<Array<DocumentRecord>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getProfileCompletion(arg0);
+                const result = await this.actor.getDocumentsByStudent(arg0);
+                return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getDocumentsByStudent(arg0);
+            return from_candid_vec_n6(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getEligibilityInsights(arg0: bigint, arg1: bigint): Promise<EligibilityCheckResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getEligibilityInsights(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getProfileCompletion(arg0);
+            const result = await this.actor.getEligibilityInsights(arg0, arg1);
             return result;
         }
     }
-    async getScholarship(arg0: bigint): Promise<Scholarship> {
+    async getMyApplications(): Promise<Array<ScholarshipApplication>> {
         if (this.processError) {
             try {
-                const result = await this.actor.getScholarship(arg0);
-                return from_candid_Scholarship_n32(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.getMyApplications();
+                return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getScholarship(arg0);
-            return from_candid_Scholarship_n32(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.getMyApplications();
+            return result;
         }
     }
-    async getUserApplications(arg0: Principal): Promise<Array<ScholarshipApplication>> {
+    async getMyStudent(): Promise<Student | null> {
         if (this.processError) {
             try {
-                const result = await this.actor.getUserApplications(arg0);
-                return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.getMyStudent();
+                return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.getUserApplications(arg0);
-            return from_candid_vec_n35(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.getMyStudent();
+            return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
         }
     }
-    async getUserProfile(arg0: Principal): Promise<MasterUserRecord | null> {
+    async getScholarshipById(arg0: bigint): Promise<Scholarship | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getScholarshipById(arg0);
+                return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getScholarshipById(arg0);
+            return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getScholarships(): Promise<Array<Scholarship>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getScholarships();
+                return from_candid_vec_n28(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getScholarships();
+            return from_candid_vec_n28(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getStudent(arg0: bigint): Promise<Student | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getStudent(arg0);
+                return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getStudent(arg0);
+            return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getUserRecord(arg0: Principal): Promise<MasterUserRecord | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getUserRecord(arg0);
-                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getUserRecord(arg0);
-            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n3(this._uploadFile, this._downloadFile, result);
         }
     }
     async isCallerAdmin(): Promise<boolean> {
@@ -432,110 +460,200 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async listScholarships(): Promise<Array<Scholarship>> {
+    async registerStudent(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string): Promise<bigint> {
         if (this.processError) {
             try {
-                const result = await this.actor.listScholarships();
-                return from_candid_vec_n40(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.listScholarships();
-            return from_candid_vec_n40(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async saveCallerUserProfile(arg0: MasterUserRecord): Promise<void> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.saveCallerUserProfile(to_candid_MasterUserRecord_n5(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.registerStudent(arg0, arg1, arg2, arg3, arg4, arg5);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(to_candid_MasterUserRecord_n5(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.registerStudent(arg0, arg1, arg2, arg3, arg4, arg5);
             return result;
         }
     }
-    async updateUserRecord(arg0: MasterUserRecord): Promise<void> {
+    async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateUserRecord(to_candid_MasterUserRecord_n5(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateUserRecord(to_candid_MasterUserRecord_n5(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
+    async updateApplicationStatus(arg0: bigint, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateApplicationStatus(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateApplicationStatus(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateDocumentUploadStatus(arg0: bigint, arg1: boolean, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateDocumentUploadStatus(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateDocumentUploadStatus(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateDocumentVerificationStatus(arg0: bigint, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateDocumentVerificationStatus(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateDocumentVerificationStatus(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async uploadDocument(arg0: bigint, arg1: string, arg2: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.uploadDocument(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.uploadDocument(arg0, arg1, arg2);
             return result;
         }
     }
 }
-function from_candid_AcademicRecord_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicRecord): AcademicRecord {
-    return from_candid_record_n21(_uploadFile, _downloadFile, value);
+function from_candid_AcademicRecord_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicRecord): AcademicRecord {
+    return from_candid_record_n16(_uploadFile, _downloadFile, value);
 }
-function from_candid_ApplicationStatus_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ApplicationStatus): ApplicationStatus {
-    return from_candid_variant_n39(_uploadFile, _downloadFile, value);
+function from_candid_Category_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Category): Category {
+    return from_candid_variant_n23(_uploadFile, _downloadFile, value);
 }
-function from_candid_Category_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Category): Category {
-    return from_candid_variant_n26(_uploadFile, _downloadFile, value);
+function from_candid_DisabilityStatus_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DisabilityStatus): DisabilityStatus {
+    return from_candid_variant_n19(_uploadFile, _downloadFile, value);
 }
-function from_candid_Gender_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Gender): Gender {
-    return from_candid_variant_n24(_uploadFile, _downloadFile, value);
+function from_candid_DocumentRecord_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DocumentRecord): DocumentRecord {
+    return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_MasterUserRecord_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MasterUserRecord): MasterUserRecord {
-    return from_candid_record_n18(_uploadFile, _downloadFile, value);
+function from_candid_DocumentType_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _DocumentType): DocumentType {
+    return from_candid_variant_n10(_uploadFile, _downloadFile, value);
 }
-function from_candid_ScholarshipApplication_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ScholarshipApplication): ScholarshipApplication {
-    return from_candid_record_n37(_uploadFile, _downloadFile, value);
+function from_candid_Gender_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Gender): Gender {
+    return from_candid_variant_n21(_uploadFile, _downloadFile, value);
 }
-function from_candid_Scholarship_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Scholarship): Scholarship {
-    return from_candid_record_n33(_uploadFile, _downloadFile, value);
+function from_candid_Scholarship_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Scholarship): Scholarship {
+    return from_candid_record_n26(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
-    return from_candid_variant_n31(_uploadFile, _downloadFile, value);
+function from_candid_Student_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Student): Student {
+    return from_candid_record_n13(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_MasterUserRecord]): MasterUserRecord | null {
-    return value.length === 0 ? null : from_candid_MasterUserRecord_n17(_uploadFile, _downloadFile, value[0]);
+function from_candid_UserRole_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Student]): Student | null {
+    return value.length === 0 ? null : from_candid_Student_n12(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    dob: string;
+function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Scholarship]): Scholarship | null {
+    return value.length === 0 ? null : from_candid_Scholarship_n25(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_record_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    profileCompletionPercentage: bigint;
+    instituteName: string;
     documents: Array<_DocumentReference>;
-    academics: Array<_AcademicRecord>;
-    name: string;
+    studentId: bigint;
+    courseLevel: string;
+    academicRecords: Array<_AcademicRecord>;
+    owner: Principal;
+    disabilityStatus: _DisabilityStatus;
+    createdAt: bigint;
+    fullName: string;
+    mobileNumber: string;
+    careerAchievements: Array<_CareerAchievement>;
     email: string;
+    district: string;
+    updatedAt: bigint;
+    state: string;
+    currentYear: bigint;
     gender: _Gender;
     category: _Category;
-    career: Array<_CareerAchievement>;
+    courseName: string;
+    annualFamilyIncome: string;
 }): {
-    dob: string;
+    profileCompletionPercentage: bigint;
+    instituteName: string;
     documents: Array<DocumentReference>;
-    academics: Array<AcademicRecord>;
-    name: string;
+    studentId: bigint;
+    courseLevel: string;
+    academicRecords: Array<AcademicRecord>;
+    owner: Principal;
+    disabilityStatus: DisabilityStatus;
+    createdAt: bigint;
+    fullName: string;
+    mobileNumber: string;
+    careerAchievements: Array<CareerAchievement>;
     email: string;
+    district: string;
+    updatedAt: bigint;
+    state: string;
+    currentYear: bigint;
     gender: Gender;
     category: Category;
-    career: Array<CareerAchievement>;
+    courseName: string;
+    annualFamilyIncome: string;
 } {
     return {
-        dob: value.dob,
+        profileCompletionPercentage: value.profileCompletionPercentage,
+        instituteName: value.instituteName,
         documents: value.documents,
-        academics: from_candid_vec_n19(_uploadFile, _downloadFile, value.academics),
-        name: value.name,
+        studentId: value.studentId,
+        courseLevel: value.courseLevel,
+        academicRecords: from_candid_vec_n14(_uploadFile, _downloadFile, value.academicRecords),
+        owner: value.owner,
+        disabilityStatus: from_candid_DisabilityStatus_n18(_uploadFile, _downloadFile, value.disabilityStatus),
+        createdAt: value.createdAt,
+        fullName: value.fullName,
+        mobileNumber: value.mobileNumber,
+        careerAchievements: value.careerAchievements,
         email: value.email,
-        gender: from_candid_Gender_n23(_uploadFile, _downloadFile, value.gender),
-        category: from_candid_Category_n25(_uploadFile, _downloadFile, value.category),
-        career: value.career
+        district: value.district,
+        updatedAt: value.updatedAt,
+        state: value.state,
+        currentYear: value.currentYear,
+        gender: from_candid_Gender_n20(_uploadFile, _downloadFile, value.gender),
+        category: from_candid_Category_n22(_uploadFile, _downloadFile, value.category),
+        courseName: value.courseName,
+        annualFamilyIncome: value.annualFamilyIncome
     };
 }
-function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     marksheetRef: [] | [string];
     institution: string;
     year: bigint;
@@ -549,51 +667,63 @@ function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uin
     percentage: number;
 } {
     return {
-        marksheetRef: record_opt_to_undefined(from_candid_opt_n22(_uploadFile, _downloadFile, value.marksheetRef)),
+        marksheetRef: record_opt_to_undefined(from_candid_opt_n17(_uploadFile, _downloadFile, value.marksheetRef)),
         institution: value.institution,
         year: value.year,
         degree: value.degree,
         percentage: value.percentage
     };
 }
-function from_candid_record_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: bigint;
     title: string;
     provider: string;
     requiredDocuments: Array<string>;
+    eligibleCategories: Array<string>;
     description: string;
-    deadline: string;
+    deadline: bigint;
+    isActive: boolean;
     eligibility: {
         category: _Category;
         requiredSkills: Array<string>;
         minPercentage: number;
         incomeLimit: bigint;
     };
+    incomeLimit: bigint;
+    eligibleCourseLevels: Array<string>;
 }): {
     id: bigint;
     title: string;
     provider: string;
     requiredDocuments: Array<string>;
+    eligibleCategories: Array<string>;
     description: string;
-    deadline: string;
+    deadline: bigint;
+    isActive: boolean;
     eligibility: {
         category: Category;
         requiredSkills: Array<string>;
         minPercentage: number;
         incomeLimit: bigint;
     };
+    incomeLimit: bigint;
+    eligibleCourseLevels: Array<string>;
 } {
     return {
         id: value.id,
         title: value.title,
         provider: value.provider,
         requiredDocuments: value.requiredDocuments,
+        eligibleCategories: value.eligibleCategories,
         description: value.description,
         deadline: value.deadline,
-        eligibility: from_candid_record_n34(_uploadFile, _downloadFile, value.eligibility)
+        isActive: value.isActive,
+        eligibility: from_candid_record_n27(_uploadFile, _downloadFile, value.eligibility),
+        incomeLimit: value.incomeLimit,
+        eligibleCourseLevels: value.eligibleCourseLevels
     };
 }
-function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     category: _Category;
     requiredSkills: Array<string>;
     minPercentage: number;
@@ -605,31 +735,69 @@ function from_candid_record_n34(_uploadFile: (file: ExternalBlob) => Promise<Uin
     incomeLimit: bigint;
 } {
     return {
-        category: from_candid_Category_n25(_uploadFile, _downloadFile, value.category),
+        category: from_candid_Category_n22(_uploadFile, _downloadFile, value.category),
         requiredSkills: value.requiredSkills,
         minPercentage: value.minPercentage,
         incomeLimit: value.incomeLimit
     };
 }
-function from_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    status: _ApplicationStatus;
-    userId: Principal;
-    filledFields: _MasterUserRecord;
-    scholarshipId: bigint;
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    documentName: string;
+    documentType: _DocumentType;
+    studentId: bigint;
+    uploadStatus: boolean;
+    owner: Principal;
+    documentId: bigint;
+    remarks: string;
+    verificationStatus: string;
+    uploadedAt: bigint;
+    fileUrl: string;
 }): {
-    status: ApplicationStatus;
-    userId: Principal;
-    filledFields: MasterUserRecord;
-    scholarshipId: bigint;
+    documentName: string;
+    documentType: DocumentType;
+    studentId: bigint;
+    uploadStatus: boolean;
+    owner: Principal;
+    documentId: bigint;
+    remarks: string;
+    verificationStatus: string;
+    uploadedAt: bigint;
+    fileUrl: string;
 } {
     return {
-        status: from_candid_ApplicationStatus_n38(_uploadFile, _downloadFile, value.status),
-        userId: value.userId,
-        filledFields: from_candid_MasterUserRecord_n17(_uploadFile, _downloadFile, value.filledFields),
-        scholarshipId: value.scholarshipId
+        documentName: value.documentName,
+        documentType: from_candid_DocumentType_n9(_uploadFile, _downloadFile, value.documentType),
+        studentId: value.studentId,
+        uploadStatus: value.uploadStatus,
+        owner: value.owner,
+        documentId: value.documentId,
+        remarks: value.remarks,
+        verificationStatus: value.verificationStatus,
+        uploadedAt: value.uploadedAt,
+        fileUrl: value.fileUrl
     };
 }
-function from_candid_variant_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    Mandatory: null;
+} | {
+    Conditional: null;
+} | {
+    Optional: null;
+}): DocumentType {
+    return "Mandatory" in value ? DocumentType.Mandatory : "Conditional" in value ? DocumentType.Conditional : "Optional" in value ? DocumentType.Optional : value;
+}
+function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    none: null;
+} | {
+    hearingImpaired: null;
+} | {
+    physicalImpaired: null;
+} | {
+    sightImpaired: null;
+}): DisabilityStatus {
+    return "none" in value ? DisabilityStatus.none : "hearingImpaired" in value ? DisabilityStatus.hearingImpaired : "physicalImpaired" in value ? DisabilityStatus.physicalImpaired : "sightImpaired" in value ? DisabilityStatus.sightImpaired : value;
+}
+function from_candid_variant_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     other: null;
 } | {
     female: null;
@@ -638,7 +806,7 @@ function from_candid_variant_n24(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): Gender {
     return "other" in value ? Gender.other : "female" in value ? Gender.female : "male" in value ? Gender.male : value;
 }
-function from_candid_variant_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     sc: null;
 } | {
     st: null;
@@ -649,7 +817,7 @@ function from_candid_variant_n26(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): Category {
     return "sc" in value ? Category.sc : "st" in value ? Category.st : "obc" in value ? Category.obc : "general" in value ? Category.general : value;
 }
-function from_candid_variant_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -658,211 +826,19 @@ function from_candid_variant_n31(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_variant_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    submitted: null;
-} | {
-    underReview: null;
-} | {
-    approved: null;
-} | {
-    rejected: null;
-} | {
-    draft: null;
-}): ApplicationStatus {
-    return "submitted" in value ? ApplicationStatus.submitted : "underReview" in value ? ApplicationStatus.underReview : "approved" in value ? ApplicationStatus.approved : "rejected" in value ? ApplicationStatus.rejected : "draft" in value ? ApplicationStatus.draft : value;
+function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AcademicRecord>): Array<AcademicRecord> {
+    return value.map((x)=>from_candid_AcademicRecord_n15(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_AcademicRecord>): Array<AcademicRecord> {
-    return value.map((x)=>from_candid_AcademicRecord_n20(_uploadFile, _downloadFile, x));
+function from_candid_vec_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Scholarship>): Array<Scholarship> {
+    return value.map((x)=>from_candid_Scholarship_n25(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ScholarshipApplication>): Array<ScholarshipApplication> {
-    return value.map((x)=>from_candid_ScholarshipApplication_n36(_uploadFile, _downloadFile, x));
+function from_candid_vec_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_DocumentRecord>): Array<DocumentRecord> {
+    return value.map((x)=>from_candid_DocumentRecord_n7(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n40(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Scholarship>): Array<Scholarship> {
-    return value.map((x)=>from_candid_Scholarship_n32(_uploadFile, _downloadFile, x));
+function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_AcademicRecord_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: AcademicRecord): _AcademicRecord {
-    return to_candid_record_n9(_uploadFile, _downloadFile, value);
-}
-function to_candid_ApplicationStatus_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): _ApplicationStatus {
-    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
-}
-function to_candid_Category_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): _Category {
-    return to_candid_variant_n13(_uploadFile, _downloadFile, value);
-}
-function to_candid_Gender_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Gender): _Gender {
-    return to_candid_variant_n11(_uploadFile, _downloadFile, value);
-}
-function to_candid_MasterUserRecord_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MasterUserRecord): _MasterUserRecord {
-    return to_candid_record_n6(_uploadFile, _downloadFile, value);
-}
-function to_candid_ScholarshipApplication_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ScholarshipApplication): _ScholarshipApplication {
-    return to_candid_record_n2(_uploadFile, _downloadFile, value);
-}
-function to_candid_Scholarship_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Scholarship): _Scholarship {
-    return to_candid_record_n28(_uploadFile, _downloadFile, value);
-}
-function to_candid_UserRole_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n15(_uploadFile, _downloadFile, value);
-}
-function to_candid_record_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    status: ApplicationStatus;
-    userId: Principal;
-    filledFields: MasterUserRecord;
-    scholarshipId: bigint;
-}): {
-    status: _ApplicationStatus;
-    userId: Principal;
-    filledFields: _MasterUserRecord;
-    scholarshipId: bigint;
-} {
-    return {
-        status: to_candid_ApplicationStatus_n3(_uploadFile, _downloadFile, value.status),
-        userId: value.userId,
-        filledFields: to_candid_MasterUserRecord_n5(_uploadFile, _downloadFile, value.filledFields),
-        scholarshipId: value.scholarshipId
-    };
-}
-function to_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: bigint;
-    title: string;
-    provider: string;
-    requiredDocuments: Array<string>;
-    description: string;
-    deadline: string;
-    eligibility: {
-        category: Category;
-        requiredSkills: Array<string>;
-        minPercentage: number;
-        incomeLimit: bigint;
-    };
-}): {
-    id: bigint;
-    title: string;
-    provider: string;
-    requiredDocuments: Array<string>;
-    description: string;
-    deadline: string;
-    eligibility: {
-        category: _Category;
-        requiredSkills: Array<string>;
-        minPercentage: number;
-        incomeLimit: bigint;
-    };
-} {
-    return {
-        id: value.id,
-        title: value.title,
-        provider: value.provider,
-        requiredDocuments: value.requiredDocuments,
-        description: value.description,
-        deadline: value.deadline,
-        eligibility: to_candid_record_n29(_uploadFile, _downloadFile, value.eligibility)
-    };
-}
-function to_candid_record_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    category: Category;
-    requiredSkills: Array<string>;
-    minPercentage: number;
-    incomeLimit: bigint;
-}): {
-    category: _Category;
-    requiredSkills: Array<string>;
-    minPercentage: number;
-    incomeLimit: bigint;
-} {
-    return {
-        category: to_candid_Category_n12(_uploadFile, _downloadFile, value.category),
-        requiredSkills: value.requiredSkills,
-        minPercentage: value.minPercentage,
-        incomeLimit: value.incomeLimit
-    };
-}
-function to_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    dob: string;
-    documents: Array<DocumentReference>;
-    academics: Array<AcademicRecord>;
-    name: string;
-    email: string;
-    gender: Gender;
-    category: Category;
-    career: Array<CareerAchievement>;
-}): {
-    dob: string;
-    documents: Array<_DocumentReference>;
-    academics: Array<_AcademicRecord>;
-    name: string;
-    email: string;
-    gender: _Gender;
-    category: _Category;
-    career: Array<_CareerAchievement>;
-} {
-    return {
-        dob: value.dob,
-        documents: value.documents,
-        academics: to_candid_vec_n7(_uploadFile, _downloadFile, value.academics),
-        name: value.name,
-        email: value.email,
-        gender: to_candid_Gender_n10(_uploadFile, _downloadFile, value.gender),
-        category: to_candid_Category_n12(_uploadFile, _downloadFile, value.category),
-        career: value.career
-    };
-}
-function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    marksheetRef?: string;
-    institution: string;
-    year: bigint;
-    degree: string;
-    percentage: number;
-}): {
-    marksheetRef: [] | [string];
-    institution: string;
-    year: bigint;
-    degree: string;
-    percentage: number;
-} {
-    return {
-        marksheetRef: value.marksheetRef ? candid_some(value.marksheetRef) : candid_none(),
-        institution: value.institution,
-        year: value.year,
-        degree: value.degree,
-        percentage: value.percentage
-    };
-}
-function to_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Gender): {
-    other: null;
-} | {
-    female: null;
-} | {
-    male: null;
-} {
-    return value == Gender.other ? {
-        other: null
-    } : value == Gender.female ? {
-        female: null
-    } : value == Gender.male ? {
-        male: null
-    } : value;
-}
-function to_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Category): {
-    sc: null;
-} | {
-    st: null;
-} | {
-    obc: null;
-} | {
-    general: null;
-} {
-    return value == Category.sc ? {
-        sc: null
-    } : value == Category.st ? {
-        st: null
-    } : value == Category.obc ? {
-        obc: null
-    } : value == Category.general ? {
-        general: null
-    } : value;
-}
-function to_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -876,32 +852,6 @@ function to_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint
     } : value == UserRole.guest ? {
         guest: null
     } : value;
-}
-function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ApplicationStatus): {
-    submitted: null;
-} | {
-    underReview: null;
-} | {
-    approved: null;
-} | {
-    rejected: null;
-} | {
-    draft: null;
-} {
-    return value == ApplicationStatus.submitted ? {
-        submitted: null
-    } : value == ApplicationStatus.underReview ? {
-        underReview: null
-    } : value == ApplicationStatus.approved ? {
-        approved: null
-    } : value == ApplicationStatus.rejected ? {
-        rejected: null
-    } : value == ApplicationStatus.draft ? {
-        draft: null
-    } : value;
-}
-function to_candid_vec_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<AcademicRecord>): Array<_AcademicRecord> {
-    return value.map((x)=>to_candid_AcademicRecord_n8(_uploadFile, _downloadFile, x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

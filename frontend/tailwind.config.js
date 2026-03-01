@@ -16,8 +16,8 @@ export default {
     },
     extend: {
       colors: {
-        border: 'oklch(var(--border))',
-        input: 'oklch(var(--input))',
+        border: 'oklch(var(--border) / <alpha-value>)',
+        input: 'oklch(var(--input) / <alpha-value>)',
         ring: 'oklch(var(--ring) / <alpha-value>)',
         background: 'oklch(var(--background))',
         foreground: 'oklch(var(--foreground))',
@@ -49,15 +49,8 @@ export default {
           DEFAULT: 'oklch(var(--card))',
           foreground: 'oklch(var(--card-foreground))',
         },
-        chart: {
-          1: 'oklch(var(--chart-1))',
-          2: 'oklch(var(--chart-2))',
-          3: 'oklch(var(--chart-3))',
-          4: 'oklch(var(--chart-4))',
-          5: 'oklch(var(--chart-5))',
-        },
         sidebar: {
-          DEFAULT: 'oklch(var(--sidebar))',
+          DEFAULT: 'oklch(var(--sidebar-background))',
           foreground: 'oklch(var(--sidebar-foreground))',
           primary: 'oklch(var(--sidebar-primary))',
           'primary-foreground': 'oklch(var(--sidebar-primary-foreground))',
@@ -71,6 +64,10 @@ export default {
           DEFAULT: '#e8820c',
           dark: '#c96e08',
           light: '#f5a53a',
+          100: '#fef3e2',
+          200: '#fde0b0',
+          400: '#f0a030',
+          600: '#c96e08',
         },
         teal: {
           50: '#f0fdfa',
@@ -96,6 +93,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'Noto Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Poppins', 'Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         'accordion-down': {

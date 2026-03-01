@@ -1,95 +1,20 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Scholarship Management & Career Roadmap web platform inspired by the National Scholarship Portal. Full-stack project with React.js/Tailwind CSS frontend, Node.js/Python backend, and an AI chatbot. Includes student dashboard, scholarship search/tracking, auto-fill system, career record database, profile tools, multilingual support (English/Hindi/Hinglish), document logic, and an AI-powered support chatbot.",
+  "summary": "Student scholarship/application management system with a Flask backend (SQLite) for student registration and document uploads, and a frontend UI. Backend includes /api/register-student and /api/upload-document endpoints.",
   "architectural_notes": [
-    "Frontend: React.js with Tailwind CSS for all UI components",
-    "Backend: Node.js and/or Python for API and business logic",
-    "AI Chatbot: Python with LangChain or OpenAI API, JSON dataset for training (questions/answers/page links)",
-    "Multilingual: English and Hindi UI toggle; chatbot handles Hinglish queries",
-    "Master User Record pattern: single source of truth for academic + career data used by auto-fill logic"
+    "Backend: Flask + SQLite with CORS enabled; tables: students, documents",
+    "API endpoints: POST /api/register-student, POST /api/upload-document",
+    "File uploads saved to local 'uploads/' folder using werkzeug secure_filename"
   ],
   "known_issues": [],
   "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Institutional hero banner with abstract geometric pattern in deep teal and saffron tones, suitable for a scholarship portal landing/dashboard header (dashboard-hero-banner.dim_1200x300.png)\n- Circular scholarship portal logo mark with a graduation cap and upward arrow motif in teal and saffron (scholarpath-logo.dim_128x128.png)",
   "existing_features": [
     {
-      "id": "feature-build-the-student-dashboard-page-as-the-main-authenticated-view-it-must-include-a-top-navigation-bar-a-sidebar-with-navigation-links-dashboard-scholarships-my-applications-resume-builder-documents-profile-and-a-main-content-area-that-renders-the-active-section-the-dashboard-overview-section-should-display-summary-cards-profile-completion-active-applications-count-upcoming-deadlines-scholarships-matched",
-      "title": "Build the Student Dashboard page as the main authenticated view. It must include: a top navigation bar, a sidebar with navigation links (Dashboard, Scholarships, My Applications, Resume Builder, Documents, Profile), and a main content area that renders the active section. The dashboard overview section should display summary cards (Profile Completion, Active Applications count, Upcoming Deadlines, Scholarships Matched).",
+      "id": "feature-update-the-frontend-react-query-hooks-usequeries-ts-to-wire-the-registerstudent-and-uploaddocument-backend-calls-to-the-new-motoko-actor-methods-replacing-or-supplementing-any-existing-stubs-so-that-the-profile-page-student-creation-and-documents-page-file-upload-both-persist-data-through-the-icp-backend-actor",
+      "title": "Update the frontend React Query hooks (useQueries.ts) to wire the registerStudent and uploadDocument backend calls to the new Motoko actor methods, replacing or supplementing any existing stubs so that the Profile page student creation and Documents page file upload both persist data through the ICP backend actor.",
       "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-profile-completion-meter-component-as-a-circular-svg-progress-bar-it-displays-the-completion-percentage-as-a-number-inside-the-circle-when-the-profile-is-below-100-hovering-over-or-tapping-the-component-shows-a-tooltip-listing-each-missing-item-e-g-upload-marksheet-add-income-certificate-the-circle-arc-color-changes-red-for-0-40-amber-for-41-79-green-for-80-100",
-      "title": "Build a Profile Completion Meter component as a circular SVG progress bar. It displays the completion percentage as a number inside the circle. When the profile is below 100%, hovering over or tapping the component shows a tooltip listing each missing item (e.g., 'Upload Marksheet', 'Add Income Certificate'). The circle arc color changes: red for 0–40%, amber for 41–79%, green for 80–100%.",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-skill-gap-analysis-widget-displayed-on-the-dashboard-it-shows-two-columns-your-skills-from-the-user-s-career-record-and-required-skills-for-the-user-s-top-matched-scholarship-skills-present-in-both-are-shown-with-a-green-check-skills-required-but-missing-are-shown-with-a-red-alert-icon",
-      "title": "Build a Skill Gap Analysis widget displayed on the Dashboard. It shows two columns: 'Your Skills' (from the user's career record) and 'Required Skills' for the user's top matched scholarship. Skills present in both are shown with a green check; skills required but missing are shown with a red alert icon.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-scholarship-search-browse-page-it-includes-a-search-bar-filter-controls-category-deadline-range-provider-and-a-card-grid-of-results-each-card-shows-title-provider-deadline-a-short-description-an-apply-now-button-and-an-eligibility-badge-eligible-in-green-or-check-eligibility-in-amber-clicking-apply-now-navigates-to-the-scholarship-detail-and-application-flow",
-      "title": "Build a Scholarship Search & Browse page. It includes a search bar, filter controls (category, deadline range, provider), and a card grid of results. Each card shows: title, provider, deadline, a short description, an 'Apply Now' button, and an eligibility badge ('Eligible' in green or 'Check Eligibility' in amber). Clicking 'Apply Now' navigates to the scholarship detail and application flow.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-scholarship-application-detail-page-it-shows-the-scholarship-info-an-eligibility-summary-eligible-not-eligible-missing-requirements-list-a-document-checklist-see-req-12-and-a-pre-filled-application-form-the-form-includes-an-auto-fill-from-profile-button-that-calls-the-backend-auto-fill-function-and-populates-all-matching-fields-the-form-can-be-submitted-only-when-all-required-documents-are-uploaded",
-      "title": "Build a Scholarship Application detail page. It shows the scholarship info, an eligibility summary (eligible/not eligible + missing requirements list), a document checklist (see REQ-12), and a pre-filled application form. The form includes an 'Auto-Fill from Profile' button that calls the backend auto-fill function and populates all matching fields. The form can be submitted only when all required documents are uploaded.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-document-checklist-ui-component-it-renders-a-list-of-required-documents-for-a-given-scholarship-each-row-shows-the-document-name-if-the-document-has-been-uploaded-it-shows-a-green-checkmark-icon-and-the-filename-if-not-uploaded-it-shows-a-red-alert-icon-labeled-missing-and-an-upload-button-that-triggers-a-file-upload-flow-use-this-component-both-on-the-application-detail-page-and-in-a-standalone-documents-section",
-      "title": "Build a Document Checklist UI component. It renders a list of required documents for a given scholarship. Each row shows the document name; if the document has been uploaded, it shows a green checkmark icon and the filename. If not uploaded, it shows a red alert icon labeled 'Missing' and an 'Upload' button that triggers a file upload flow. Use this component both on the Application detail page and in a standalone Documents section.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-a-resume-builder-page-with-two-tabbed-sections-academic-details-and-career-details-academic-details-form-collects-institution-degree-field-of-study-start-end-year-percentage-cgpa-career-details-form-collects-employer-job-title-start-end-date-description-skills-comma-separated-each-tab-includes-an-auto-fill-from-profile-button-that-populates-the-form-from-the-stored-master-user-record-a-save-to-profile-button-persists-changes-to-the-backend",
-      "title": "Build a Resume Builder page with two tabbed sections: 'Academic Details' and 'Career Details'. Academic Details form collects: institution, degree, field of study, start/end year, percentage/CGPA. Career Details form collects: employer, job title, start/end date, description, skills (comma-separated). Each tab includes an 'Auto-Fill from Profile' button that populates the form from the stored Master User Record. A 'Save to Profile' button persists changes to the backend.",
-      "reqIds": [
-        "REQ-13"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-multilingual-toggle-button-in-the-top-navigation-bar-that-switches-the-ui-between-english-and-hindi-all-user-facing-labels-headings-button-text-tooltips-and-placeholder-text-across-the-dashboard-scholarship-pages-resume-builder-document-checklist-and-navigation-must-be-translated-store-translation-strings-in-a-dedicated-i18n-module-with-keys-for-en-and-hi",
-      "title": "Add a multilingual toggle button in the top navigation bar that switches the UI between English and Hindi. All user-facing labels, headings, button text, tooltips, and placeholder text across the Dashboard, Scholarship pages, Resume Builder, Document Checklist, and navigation must be translated. Store translation strings in a dedicated i18n module with keys for 'en' and 'hi'.",
-      "reqIds": [
-        "REQ-14"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-an-faq-help-chatbot-widget-displayed-as-a-floating-button-on-all-pages-when-opened-it-shows-a-chat-interface-the-bot-responds-to-student-queries-about-navigating-the-platform-e-g-where-do-i-upload-my-marksheet-using-a-predefined-json-knowledge-base-of-question-patterns-answers-and-internal-page-links-responses-include-the-answer-text-and-a-clickable-link-to-the-relevant-page-the-bot-must-handle-hinglish-queries-e-g-marksheet-kahan-upload-karu-by-matching-keywords-in-both-english-and-hindi-script",
-      "title": "Build an FAQ/Help Chatbot widget displayed as a floating button on all pages. When opened, it shows a chat interface. The bot responds to student queries about navigating the platform (e.g., 'Where do I upload my marksheet?') using a predefined JSON knowledge base of question patterns, answers, and internal page links. Responses include the answer text and a clickable link to the relevant page. The bot must handle Hinglish queries (e.g., 'marksheet kahan upload karu?') by matching keywords in both English and Hindi script.",
-      "reqIds": [
-        "REQ-15"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-apply-a-cohesive-visual-theme-across-the-entire-platform-use-a-clean-government-portal-inspired-design-with-a-deep-teal-and-saffron-accent-color-scheme-professional-sans-serif-typography-card-based-layouts-with-subtle-shadows-and-a-structured-grid-navigation-should-feel-institutional-and-trustworthy-status-indicators-eligibility-document-status-profile-completion-must-use-clear-accessible-color-coding",
-      "title": "Apply a cohesive visual theme across the entire platform. Use a clean government-portal-inspired design with a deep teal and saffron accent color scheme, professional sans-serif typography, card-based layouts with subtle shadows, and a structured grid. Navigation should feel institutional and trustworthy. Status indicators (eligibility, document status, profile completion) must use clear, accessible color coding.",
-      "reqIds": [
-        "REQ-16"
+        "REQ-3"
       ],
       "version": 1
     }
@@ -97,109 +22,29 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Scholarship search and tracking system",
+      "summary": "Integrate provided Flask backend (student registration + document upload APIs) into the project",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Auto-fill system for scholarship forms and resumes using stored user/profile data",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Career Record database storing academic history and career achievements",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Profile Completion Meter (circular progress bar with tooltip for missing items) and Skill Gap Analysis widget",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Multilingual support: English/Hindi toggle in navbar, Hinglish chatbot understanding",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Document logic: eligibility checker, document checklist UI (green/red indicators), missing document indicator, and document validation middleware",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Student Dashboard with Resume Builder interface (Academic + Career form with Auto-Fill from Profile button)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Eligibility algorithm: takes User Profile JSON + Scholarship Criteria JSON, returns eligible/not eligible + missing requirements list",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "AI Chatbot: answers student queries with direct page links, trained on site navigation, supports Hinglish, built with LangChain or OpenAI API",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Create a Motoko backend actor that stores and manages a Master User Record containing: personal info (name, email, date of birth, gender, category), academic history (institution, degree, year, percentage/CGPA, marksheet upload reference), career achievements (employer, role, duration, skills), and uploaded document references (filename, document type, upload status). Expose query and update functions to read and write these records keyed by user principal.",
+      "summary": "Extend the backend Motoko actor to fully support student registration: ensure the Student type includes all fields from the Flask schema (full_name, email, mobile, course, category, income), and expose a registerStudent update call that inserts a new student record and returns the generated student ID.",
       "reqIds": [
         "REQ-1"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-11",
-      "summary": "Implement a scholarship catalog in the backend: each scholarship has an id, title, provider, deadline, description, required documents list, and eligibility criteria (min percentage, income limit, category, required skills). Expose functions to list all scholarships, search/filter by keyword and criteria, and return a single scholarship by id.",
+      "id": "AR-3",
+      "summary": "Extend the backend Motoko actor to support document upload tracking: ensure the DocumentRecord type includes student_id, document_name, file_path (stored as a Text blob/base64 or filename reference), and upload_status fields. Expose an uploadDocument update call that creates a new document record linked to a student and returns a success message.",
       "reqIds": [
         "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Implement a scholarship application tracking system in the backend: users can apply to a scholarship (creating an application record with status: Draft, Submitted, Under Review, Approved, Rejected), update application status, and retrieve all applications for the logged-in user.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Implement an eligibility checking function in the backend that accepts a scholarship id and the calling user's principal, compares the user's academic and career data against the scholarship's eligibility criteria, and returns: a boolean isEligible flag and a list of unmet requirements (the 'Skill Gap Analysis' result). This same logic should also return the list of missing required documents for that scholarship.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Implement an auto-fill function in the backend that takes a scholarship id and the calling user's principal, maps fields from the user's Master User Record to the scholarship's application form fields, and returns a pre-populated application form object. The mapping must cover personal info, academic details, and career details.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-15",
-      "summary": "Implement a profile completion score function in the backend that calculates what percentage of a user's Master User Record is filled in, and returns both the numeric percentage and a list of specific missing field labels (e.g., 'Upload Marksheet', 'Add Income Certificate', 'Add Work Experience').",
-      "reqIds": [
-        "REQ-6"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Scholarship Management & Career Roadmap",
+  "projectName": "Student Scholarship Management System",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

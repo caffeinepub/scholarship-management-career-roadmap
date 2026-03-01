@@ -1,148 +1,176 @@
 import React from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useTranslation } from '../hooks/useTranslation';
-import { useGetUserApplications, useListScholarships } from '../hooks/useQueries';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { GraduationCap, ArrowRight, FileText } from 'lucide-react';
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
+import { useGetMyApplications, useGetScholarships } from '../hooks/useQueries';
+import { ScholarshipApplication, Scholarship } from '../backend';
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  draft: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'applications.status.draft' },
-  submitted: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'applications.status.submitted' },
-  underReview: { bg: 'bg-amber-100', text: 'text-amber-700', label: 'applications.status.underReview' },
-  approved: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'applications.status.approved' },
-  rejected: { bg: 'bg-red-100', text: 'text-red-600', label: 'applications.status.rejected' },
+const statusConfig: Record<
+  string,
+  { label: string; icon: React.ReactNode; className: string }
+> = {
+  Pending: {
+    label: 'Pending',
+    icon: <Clock className="w-3.5 h-3.5" />,
+    className: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
+  },
+  'Under Review': {
+    label: 'Under Review',
+    icon: <AlertCircle className="w-3.5 h-3.5" />,
+    className: 'bg-blue-100 text-blue-700 border border-blue-200',
+  },
+  Approved: {
+    label: 'Approved',
+    icon: <CheckCircle className="w-3.5 h-3.5" />,
+    className: 'bg-green-100 text-green-700 border border-green-200',
+  },
+  Rejected: {
+    label: 'Rejected',
+    icon: <XCircle className="w-3.5 h-3.5" />,
+    className: 'bg-red-100 text-red-700 border border-red-200',
+  },
 };
 
-export default function MyApplications() {
-  const { t } = useTranslation();
-  const { identity } = useInternetIdentity();
-  const navigate = useNavigate();
+function formatDate(timestamp: bigint): string {
+  // Backend timestamps are in nanoseconds
+  const ms = Number(timestamp) / 1_000_000;
+  if (ms === 0) return 'N/A';
+  const date = new Date(ms);
+  return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
 
-  const { data: applications, isLoading: appsLoading } = useGetUserApplications();
-  const { data: scholarships } = useListScholarships();
+interface ApplicationCardProps {
+  application: ScholarshipApplication;
+  scholarship: Scholarship | undefined;
+}
 
-  if (!identity) {
-    navigate({ to: '/login' });
-    return null;
-  }
-
-  const getScholarship = (id: bigint) => scholarships?.find((s) => s.id === id);
+function ApplicationCard({ application, scholarship }: ApplicationCardProps) {
+  const status = application.applicationStatus;
+  const cfg = statusConfig[status] ?? statusConfig['Pending'];
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-teal-900">{t('applications.title')}</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            {applications?.length ?? 0} total applications
+    <div className="bg-card border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground text-base truncate">
+            {scholarship?.title ?? `Scholarship #${application.scholarshipId}`}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {scholarship?.provider ?? 'Unknown Provider'}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => navigate({ to: '/scholarships' })}
-          className="bg-teal-700 hover:bg-teal-800 text-white text-xs gap-1.5"
+        {/* Status badge */}
+        <span
+          className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full shrink-0 ${cfg.className}`}
         >
-          <GraduationCap className="h-3.5 w-3.5" />
-          Browse More
-        </Button>
+          {cfg.icon}
+          {cfg.label}
+        </span>
       </div>
 
-      {/* Applications list */}
-      {appsLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
-          ))}
+      {/* Rejection reason */}
+      {status === 'Rejected' && application.rejectionReason && (
+        <div className="mt-3 flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <XCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-xs font-medium text-red-700">Rejection Reason</p>
+            <p className="text-xs text-red-600 mt-0.5">{application.rejectionReason}</p>
+          </div>
         </div>
-      ) : applications && applications.length > 0 ? (
-        <div className="space-y-3">
-          {applications.map((app, i) => {
-            const scholarship = getScholarship(app.scholarshipId);
-            const statusStyle = STATUS_STYLES[app.status] ?? STATUS_STYLES.draft;
-
-            return (
-              <Card key={i} className="border-teal-100 shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
-                        <GraduationCap className="h-5 w-5 text-teal-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-gray-900 text-sm truncate">
-                          {scholarship?.title ?? `Scholarship #${app.scholarshipId.toString()}`}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {scholarship?.provider ?? 'Unknown Provider'}
-                        </p>
-                        {scholarship?.deadline && (
-                          <p className="text-xs text-amber-600 mt-1">
-                            Deadline: {scholarship.deadline}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusStyle.bg} ${statusStyle.text}`}
-                      >
-                        {t(statusStyle.label)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          navigate({
-                            to: '/scholarships/$id',
-                            params: { id: app.scholarshipId.toString() },
-                          })
-                        }
-                        className="text-xs text-teal-600 hover:text-teal-800 h-6 px-2 gap-1"
-                      >
-                        View <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      ) : (
-        <Card className="border-teal-100 shadow-sm">
-          <CardContent className="py-16 text-center">
-            <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 mb-4">{t('applications.noApplications')}</p>
-            <Button
-              onClick={() => navigate({ to: '/scholarships' })}
-              className="bg-teal-700 hover:bg-teal-800 text-white"
-            >
-              {t('dashboard.browseScholarships')}
-            </Button>
-          </CardContent>
-        </Card>
       )}
 
-      {/* Footer */}
-      <footer className="text-center py-4 text-gray-400 text-xs border-t border-gray-100">
-        © {new Date().getFullYear()} ScholarPath · Built with ❤️ using{' '}
-        <a
-          href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-            window.location.hostname || 'scholarpath'
-          )}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-teal-600 hover:underline"
-        >
-          caffeine.ai
-        </a>
-      </footer>
+      {/* Dates */}
+      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+        <span className="flex items-center gap-1">
+          <Clock className="w-3.5 h-3.5" />
+          Applied: {formatDate(application.appliedDate)}
+        </span>
+        <span className="flex items-center gap-1">
+          <ExternalLink className="w-3.5 h-3.5" />
+          Last Updated: {formatDate(application.lastUpdated)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export default function MyApplications() {
+  const { data: applications = [], isLoading: appsLoading } = useGetMyApplications();
+  const { data: scholarships = [], isLoading: scholarsLoading } = useGetScholarships();
+
+  const isLoading = appsLoading || scholarsLoading;
+
+  const getScholarship = (scholarshipId: bigint): Scholarship | undefined =>
+    scholarships.find((s) => s.id === scholarshipId);
+
+  const statusCounts = {
+    total: applications.length,
+    approved: applications.filter((a) => a.applicationStatus === 'Approved').length,
+    pending: applications.filter(
+      (a) => a.applicationStatus === 'Pending' || a.applicationStatus === 'Under Review',
+    ).length,
+    rejected: applications.filter((a) => a.applicationStatus === 'Rejected').length,
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+          <FileText className="w-6 h-6 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">My Applications</h1>
+          <p className="text-sm text-muted-foreground">Track all your scholarship applications</p>
+        </div>
+      </div>
+
+      {/* Summary stats */}
+      {!isLoading && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Total', value: statusCounts.total, color: 'text-foreground' },
+            { label: 'Approved', value: statusCounts.approved, color: 'text-green-600' },
+            { label: 'In Progress', value: statusCounts.pending, color: 'text-blue-600' },
+            { label: 'Rejected', value: statusCounts.rejected, color: 'text-red-500' },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-card border border-border rounded-xl p-3 text-center shadow-sm">
+              <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center h-32">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Loading applications...</span>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!isLoading && applications.length === 0 && (
+        <div className="bg-card border border-border rounded-xl p-10 text-center">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <h3 className="font-semibold text-foreground">No Applications Yet</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Browse scholarships and apply to get started.
+          </p>
+        </div>
+      )}
+
+      {/* Application cards */}
+      {!isLoading && applications.length > 0 && (
+        <div className="space-y-4">
+          {applications.map((app) => (
+            <ApplicationCard
+              key={app.applicationId.toString()}
+              application={app}
+              scholarship={getScholarship(app.scholarshipId)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

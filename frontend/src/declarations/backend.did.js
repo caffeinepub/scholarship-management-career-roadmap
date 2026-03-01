@@ -8,12 +8,49 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const ApplicationStatus = IDL.Variant({
-  'submitted' : IDL.Null,
-  'underReview' : IDL.Null,
-  'approved' : IDL.Null,
-  'rejected' : IDL.Null,
-  'draft' : IDL.Null,
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'user' : IDL.Null,
+  'guest' : IDL.Null,
+});
+export const ScholarshipApplication = IDL.Record({
+  'studentId' : IDL.Nat,
+  'applicationId' : IDL.Nat,
+  'owner' : IDL.Principal,
+  'rejectionReason' : IDL.Text,
+  'lastUpdated' : IDL.Int,
+  'applicationStatus' : IDL.Text,
+  'appliedDate' : IDL.Int,
+  'scholarshipId' : IDL.Nat,
+});
+export const UserProfile = IDL.Record({
+  'name' : IDL.Text,
+  'email' : IDL.Text,
+});
+export const DocumentType = IDL.Variant({
+  'Mandatory' : IDL.Null,
+  'Conditional' : IDL.Null,
+  'Optional' : IDL.Null,
+});
+export const DocumentRecord = IDL.Record({
+  'documentName' : IDL.Text,
+  'documentType' : DocumentType,
+  'studentId' : IDL.Nat,
+  'uploadStatus' : IDL.Bool,
+  'owner' : IDL.Principal,
+  'documentId' : IDL.Nat,
+  'remarks' : IDL.Text,
+  'verificationStatus' : IDL.Text,
+  'uploadedAt' : IDL.Int,
+  'fileUrl' : IDL.Text,
+});
+export const EligibilityCheckResult = IDL.Record({
+  'missingDocuments' : IDL.Vec(IDL.Text),
+  'eligibilityStatus' : IDL.Text,
+  'readinessScore' : IDL.Nat,
+  'unmetRequirements' : IDL.Vec(IDL.Text),
+  'riskLevel' : IDL.Text,
+  'urgentAlert' : IDL.Bool,
 });
 export const DocumentReference = IDL.Record({
   'documentType' : IDL.Text,
@@ -27,6 +64,18 @@ export const AcademicRecord = IDL.Record({
   'degree' : IDL.Text,
   'percentage' : IDL.Float64,
 });
+export const DisabilityStatus = IDL.Variant({
+  'none' : IDL.Null,
+  'hearingImpaired' : IDL.Null,
+  'physicalImpaired' : IDL.Null,
+  'sightImpaired' : IDL.Null,
+});
+export const CareerAchievement = IDL.Record({
+  'duration' : IDL.Text,
+  'role' : IDL.Text,
+  'employer' : IDL.Text,
+  'skills' : IDL.Vec(IDL.Text),
+});
 export const Gender = IDL.Variant({
   'other' : IDL.Null,
   'female' : IDL.Null,
@@ -38,110 +87,162 @@ export const Category = IDL.Variant({
   'obc' : IDL.Null,
   'general' : IDL.Null,
 });
-export const CareerAchievement = IDL.Record({
-  'duration' : IDL.Text,
-  'role' : IDL.Text,
-  'employer' : IDL.Text,
-  'skills' : IDL.Vec(IDL.Text),
-});
-export const MasterUserRecord = IDL.Record({
-  'dob' : IDL.Text,
+export const Student = IDL.Record({
+  'profileCompletionPercentage' : IDL.Nat,
+  'instituteName' : IDL.Text,
   'documents' : IDL.Vec(DocumentReference),
-  'academics' : IDL.Vec(AcademicRecord),
-  'name' : IDL.Text,
+  'studentId' : IDL.Nat,
+  'courseLevel' : IDL.Text,
+  'academicRecords' : IDL.Vec(AcademicRecord),
+  'owner' : IDL.Principal,
+  'disabilityStatus' : DisabilityStatus,
+  'createdAt' : IDL.Int,
+  'fullName' : IDL.Text,
+  'mobileNumber' : IDL.Text,
+  'careerAchievements' : IDL.Vec(CareerAchievement),
   'email' : IDL.Text,
+  'district' : IDL.Text,
+  'updatedAt' : IDL.Int,
+  'state' : IDL.Text,
+  'currentYear' : IDL.Nat,
   'gender' : Gender,
   'category' : Category,
-  'career' : IDL.Vec(CareerAchievement),
-});
-export const ScholarshipApplication = IDL.Record({
-  'status' : ApplicationStatus,
-  'userId' : IDL.Principal,
-  'filledFields' : MasterUserRecord,
-  'scholarshipId' : IDL.Nat,
-});
-export const UserRole = IDL.Variant({
-  'admin' : IDL.Null,
-  'user' : IDL.Null,
-  'guest' : IDL.Null,
-});
-export const EligibilityCheckResult = IDL.Record({
-  'missingDocuments' : IDL.Vec(IDL.Text),
-  'isEligible' : IDL.Bool,
-  'unmetRequirements' : IDL.Vec(IDL.Text),
+  'courseName' : IDL.Text,
+  'annualFamilyIncome' : IDL.Text,
 });
 export const Scholarship = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
   'provider' : IDL.Text,
   'requiredDocuments' : IDL.Vec(IDL.Text),
+  'eligibleCategories' : IDL.Vec(IDL.Text),
   'description' : IDL.Text,
-  'deadline' : IDL.Text,
+  'deadline' : IDL.Int,
+  'isActive' : IDL.Bool,
   'eligibility' : IDL.Record({
     'category' : Category,
     'requiredSkills' : IDL.Vec(IDL.Text),
     'minPercentage' : IDL.Float64,
     'incomeLimit' : IDL.Nat,
   }),
-});
-export const ProfileCompletionResult = IDL.Record({
-  'completionPercentage' : IDL.Float64,
-  'missingFields' : IDL.Vec(IDL.Text),
+  'incomeLimit' : IDL.Nat,
+  'eligibleCourseLevels' : IDL.Vec(IDL.Text),
 });
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-  'applyToScholarship' : IDL.Func([IDL.Nat, ScholarshipApplication], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'autoFillApplication' : IDL.Func(
-      [IDL.Nat, IDL.Principal],
-      [IDL.Opt(MasterUserRecord)],
-      ['query'],
+  'createApplication' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Nat], []),
+  'createScholarship' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Int,
+        IDL.Text,
+        IDL.Vec(IDL.Text),
+        IDL.Nat,
+        IDL.Vec(IDL.Text),
+        IDL.Vec(IDL.Text),
+        IDL.Bool,
+      ],
+      [IDL.Nat],
+      [],
     ),
-  'checkEligibility' : IDL.Func(
-      [IDL.Nat, IDL.Principal],
-      [EligibilityCheckResult],
-      ['query'],
-    ),
-  'createScholarship' : IDL.Func([Scholarship], [IDL.Nat], []),
-  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(MasterUserRecord)], ['query']),
-  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-  'getProfileCompletion' : IDL.Func(
-      [IDL.Principal],
-      [ProfileCompletionResult],
-      ['query'],
-    ),
-  'getScholarship' : IDL.Func([IDL.Nat], [Scholarship], ['query']),
-  'getUserApplications' : IDL.Func(
-      [IDL.Principal],
+  'getApplicationsByStudent' : IDL.Func(
+      [IDL.Nat],
       [IDL.Vec(ScholarshipApplication)],
       ['query'],
     ),
-  'getUserProfile' : IDL.Func(
-      [IDL.Principal],
-      [IDL.Opt(MasterUserRecord)],
+  'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getDocumentsByStudent' : IDL.Func(
+      [IDL.Nat],
+      [IDL.Vec(DocumentRecord)],
       ['query'],
     ),
-  'getUserRecord' : IDL.Func(
+  'getEligibilityInsights' : IDL.Func(
+      [IDL.Nat, IDL.Nat],
+      [EligibilityCheckResult],
+      ['query'],
+    ),
+  'getMyApplications' : IDL.Func(
+      [],
+      [IDL.Vec(ScholarshipApplication)],
+      ['query'],
+    ),
+  'getMyStudent' : IDL.Func([], [IDL.Opt(Student)], ['query']),
+  'getScholarshipById' : IDL.Func([IDL.Nat], [IDL.Opt(Scholarship)], ['query']),
+  'getScholarships' : IDL.Func([], [IDL.Vec(Scholarship)], ['query']),
+  'getStudent' : IDL.Func([IDL.Nat], [IDL.Opt(Student)], ['query']),
+  'getUserProfile' : IDL.Func(
       [IDL.Principal],
-      [IDL.Opt(MasterUserRecord)],
+      [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'listScholarships' : IDL.Func([], [IDL.Vec(Scholarship)], ['query']),
-  'saveCallerUserProfile' : IDL.Func([MasterUserRecord], [], []),
-  'updateUserRecord' : IDL.Func([MasterUserRecord], [], []),
+  'registerStudent' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Nat],
+      [],
+    ),
+  'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'updateApplicationStatus' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+  'updateDocumentUploadStatus' : IDL.Func(
+      [IDL.Nat, IDL.Bool, IDL.Text],
+      [],
+      [],
+    ),
+  'updateDocumentVerificationStatus' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'uploadDocument' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [IDL.Text], []),
 });
 
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const ApplicationStatus = IDL.Variant({
-    'submitted' : IDL.Null,
-    'underReview' : IDL.Null,
-    'approved' : IDL.Null,
-    'rejected' : IDL.Null,
-    'draft' : IDL.Null,
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'user' : IDL.Null,
+    'guest' : IDL.Null,
+  });
+  const ScholarshipApplication = IDL.Record({
+    'studentId' : IDL.Nat,
+    'applicationId' : IDL.Nat,
+    'owner' : IDL.Principal,
+    'rejectionReason' : IDL.Text,
+    'lastUpdated' : IDL.Int,
+    'applicationStatus' : IDL.Text,
+    'appliedDate' : IDL.Int,
+    'scholarshipId' : IDL.Nat,
+  });
+  const UserProfile = IDL.Record({ 'name' : IDL.Text, 'email' : IDL.Text });
+  const DocumentType = IDL.Variant({
+    'Mandatory' : IDL.Null,
+    'Conditional' : IDL.Null,
+    'Optional' : IDL.Null,
+  });
+  const DocumentRecord = IDL.Record({
+    'documentName' : IDL.Text,
+    'documentType' : DocumentType,
+    'studentId' : IDL.Nat,
+    'uploadStatus' : IDL.Bool,
+    'owner' : IDL.Principal,
+    'documentId' : IDL.Nat,
+    'remarks' : IDL.Text,
+    'verificationStatus' : IDL.Text,
+    'uploadedAt' : IDL.Int,
+    'fileUrl' : IDL.Text,
+  });
+  const EligibilityCheckResult = IDL.Record({
+    'missingDocuments' : IDL.Vec(IDL.Text),
+    'eligibilityStatus' : IDL.Text,
+    'readinessScore' : IDL.Nat,
+    'unmetRequirements' : IDL.Vec(IDL.Text),
+    'riskLevel' : IDL.Text,
+    'urgentAlert' : IDL.Bool,
   });
   const DocumentReference = IDL.Record({
     'documentType' : IDL.Text,
@@ -155,6 +256,18 @@ export const idlFactory = ({ IDL }) => {
     'degree' : IDL.Text,
     'percentage' : IDL.Float64,
   });
+  const DisabilityStatus = IDL.Variant({
+    'none' : IDL.Null,
+    'hearingImpaired' : IDL.Null,
+    'physicalImpaired' : IDL.Null,
+    'sightImpaired' : IDL.Null,
+  });
+  const CareerAchievement = IDL.Record({
+    'duration' : IDL.Text,
+    'role' : IDL.Text,
+    'employer' : IDL.Text,
+    'skills' : IDL.Vec(IDL.Text),
+  });
   const Gender = IDL.Variant({
     'other' : IDL.Null,
     'female' : IDL.Null,
@@ -166,103 +279,121 @@ export const idlFactory = ({ IDL }) => {
     'obc' : IDL.Null,
     'general' : IDL.Null,
   });
-  const CareerAchievement = IDL.Record({
-    'duration' : IDL.Text,
-    'role' : IDL.Text,
-    'employer' : IDL.Text,
-    'skills' : IDL.Vec(IDL.Text),
-  });
-  const MasterUserRecord = IDL.Record({
-    'dob' : IDL.Text,
+  const Student = IDL.Record({
+    'profileCompletionPercentage' : IDL.Nat,
+    'instituteName' : IDL.Text,
     'documents' : IDL.Vec(DocumentReference),
-    'academics' : IDL.Vec(AcademicRecord),
-    'name' : IDL.Text,
+    'studentId' : IDL.Nat,
+    'courseLevel' : IDL.Text,
+    'academicRecords' : IDL.Vec(AcademicRecord),
+    'owner' : IDL.Principal,
+    'disabilityStatus' : DisabilityStatus,
+    'createdAt' : IDL.Int,
+    'fullName' : IDL.Text,
+    'mobileNumber' : IDL.Text,
+    'careerAchievements' : IDL.Vec(CareerAchievement),
     'email' : IDL.Text,
+    'district' : IDL.Text,
+    'updatedAt' : IDL.Int,
+    'state' : IDL.Text,
+    'currentYear' : IDL.Nat,
     'gender' : Gender,
     'category' : Category,
-    'career' : IDL.Vec(CareerAchievement),
-  });
-  const ScholarshipApplication = IDL.Record({
-    'status' : ApplicationStatus,
-    'userId' : IDL.Principal,
-    'filledFields' : MasterUserRecord,
-    'scholarshipId' : IDL.Nat,
-  });
-  const UserRole = IDL.Variant({
-    'admin' : IDL.Null,
-    'user' : IDL.Null,
-    'guest' : IDL.Null,
-  });
-  const EligibilityCheckResult = IDL.Record({
-    'missingDocuments' : IDL.Vec(IDL.Text),
-    'isEligible' : IDL.Bool,
-    'unmetRequirements' : IDL.Vec(IDL.Text),
+    'courseName' : IDL.Text,
+    'annualFamilyIncome' : IDL.Text,
   });
   const Scholarship = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
     'provider' : IDL.Text,
     'requiredDocuments' : IDL.Vec(IDL.Text),
+    'eligibleCategories' : IDL.Vec(IDL.Text),
     'description' : IDL.Text,
-    'deadline' : IDL.Text,
+    'deadline' : IDL.Int,
+    'isActive' : IDL.Bool,
     'eligibility' : IDL.Record({
       'category' : Category,
       'requiredSkills' : IDL.Vec(IDL.Text),
       'minPercentage' : IDL.Float64,
       'incomeLimit' : IDL.Nat,
     }),
-  });
-  const ProfileCompletionResult = IDL.Record({
-    'completionPercentage' : IDL.Float64,
-    'missingFields' : IDL.Vec(IDL.Text),
+    'incomeLimit' : IDL.Nat,
+    'eligibleCourseLevels' : IDL.Vec(IDL.Text),
   });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
-    'applyToScholarship' : IDL.Func([IDL.Nat, ScholarshipApplication], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'autoFillApplication' : IDL.Func(
-        [IDL.Nat, IDL.Principal],
-        [IDL.Opt(MasterUserRecord)],
-        ['query'],
-      ),
-    'checkEligibility' : IDL.Func(
-        [IDL.Nat, IDL.Principal],
-        [EligibilityCheckResult],
-        ['query'],
-      ),
-    'createScholarship' : IDL.Func([Scholarship], [IDL.Nat], []),
-    'getCallerUserProfile' : IDL.Func(
+    'createApplication' : IDL.Func([IDL.Nat, IDL.Nat], [IDL.Nat], []),
+    'createScholarship' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Int,
+          IDL.Text,
+          IDL.Vec(IDL.Text),
+          IDL.Nat,
+          IDL.Vec(IDL.Text),
+          IDL.Vec(IDL.Text),
+          IDL.Bool,
+        ],
+        [IDL.Nat],
         [],
-        [IDL.Opt(MasterUserRecord)],
-        ['query'],
       ),
-    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
-    'getProfileCompletion' : IDL.Func(
-        [IDL.Principal],
-        [ProfileCompletionResult],
-        ['query'],
-      ),
-    'getScholarship' : IDL.Func([IDL.Nat], [Scholarship], ['query']),
-    'getUserApplications' : IDL.Func(
-        [IDL.Principal],
+    'getApplicationsByStudent' : IDL.Func(
+        [IDL.Nat],
         [IDL.Vec(ScholarshipApplication)],
         ['query'],
       ),
-    'getUserProfile' : IDL.Func(
-        [IDL.Principal],
-        [IDL.Opt(MasterUserRecord)],
+    'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getDocumentsByStudent' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Vec(DocumentRecord)],
         ['query'],
       ),
-    'getUserRecord' : IDL.Func(
+    'getEligibilityInsights' : IDL.Func(
+        [IDL.Nat, IDL.Nat],
+        [EligibilityCheckResult],
+        ['query'],
+      ),
+    'getMyApplications' : IDL.Func(
+        [],
+        [IDL.Vec(ScholarshipApplication)],
+        ['query'],
+      ),
+    'getMyStudent' : IDL.Func([], [IDL.Opt(Student)], ['query']),
+    'getScholarshipById' : IDL.Func(
+        [IDL.Nat],
+        [IDL.Opt(Scholarship)],
+        ['query'],
+      ),
+    'getScholarships' : IDL.Func([], [IDL.Vec(Scholarship)], ['query']),
+    'getStudent' : IDL.Func([IDL.Nat], [IDL.Opt(Student)], ['query']),
+    'getUserProfile' : IDL.Func(
         [IDL.Principal],
-        [IDL.Opt(MasterUserRecord)],
+        [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'listScholarships' : IDL.Func([], [IDL.Vec(Scholarship)], ['query']),
-    'saveCallerUserProfile' : IDL.Func([MasterUserRecord], [], []),
-    'updateUserRecord' : IDL.Func([MasterUserRecord], [], []),
+    'registerStudent' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Nat],
+        [],
+      ),
+    'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'updateApplicationStatus' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [], []),
+    'updateDocumentUploadStatus' : IDL.Func(
+        [IDL.Nat, IDL.Bool, IDL.Text],
+        [],
+        [],
+      ),
+    'updateDocumentVerificationStatus' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'uploadDocument' : IDL.Func([IDL.Nat, IDL.Text, IDL.Text], [IDL.Text], []),
   });
 };
 
