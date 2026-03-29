@@ -1,0 +1,202 @@
+[
+  {
+    "id": 1,
+    "patterns": [
+      "marksheet",
+      "marksheet kahan",
+      "marksheet upload",
+      "upload marksheet",
+      "marksheet kaise upload kare",
+      "mark sheet",
+      "transcript",
+      "result upload"
+    ],
+    "answer": "You can upload your marksheet in the Documents section. Go to Documents from the sidebar and click 'Upload' next to 'Marksheet'.",
+    "pageLink": "/documents"
+  },
+  {
+    "id": 2,
+    "patterns": [
+      "income certificate",
+      "income proof",
+      "aay praman patra",
+      "income cert upload",
+      "income document",
+      "aay certificate"
+    ],
+    "answer": "Upload your Income Certificate in the Documents section. It is required for most scholarships.",
+    "pageLink": "/documents"
+  },
+  {
+    "id": 3,
+    "patterns": [
+      "caste certificate",
+      "jati praman patra",
+      "category certificate",
+      "sc st obc certificate",
+      "caste proof"
+    ],
+    "answer": "You can upload your Caste Certificate in the Documents section. This is required for SC/ST/OBC category scholarships.",
+    "pageLink": "/documents"
+  },
+  {
+    "id": 4,
+    "patterns": [
+      "apply scholarship",
+      "scholarship apply kaise kare",
+      "how to apply",
+      "apply karna",
+      "scholarship ke liye apply",
+      "application submit"
+    ],
+    "answer": "To apply for a scholarship, go to the Scholarships page, find a scholarship you are eligible for, and click 'Apply Now'. Fill in the form and submit.",
+    "pageLink": "/scholarships"
+  },
+  {
+    "id": 5,
+    "patterns": [
+      "profile complete",
+      "profile kaise complete kare",
+      "profile completion",
+      "profile fill karo",
+      "profile update",
+      "profile banana"
+    ],
+    "answer": "Complete your profile by going to the Profile section. Fill in your personal details, academic records, and upload required documents.",
+    "pageLink": "/profile"
+  },
+  {
+    "id": 6,
+    "patterns": [
+      "resume",
+      "resume banana",
+      "resume builder",
+      "cv banana",
+      "resume kaise banaye",
+      "academic details",
+      "career details"
+    ],
+    "answer": "Use the Resume Builder to create your resume. You can add Academic Details and Career Details, and use 'Auto-Fill from Profile' to populate fields automatically.",
+    "pageLink": "/resume-builder"
+  },
+  {
+    "id": 7,
+    "patterns": [
+      "eligibility",
+      "eligible hoon",
+      "am i eligible",
+      "eligibility check",
+      "patra hoon",
+      "scholarship ke liye eligible",
+      "check eligibility"
+    ],
+    "answer": "You can check your eligibility for any scholarship on the Scholarships page. Each scholarship card shows an eligibility badge. Click on a scholarship for detailed eligibility information.",
+    "pageLink": "/scholarships"
+  },
+  {
+    "id": 8,
+    "patterns": [
+      "skill gap",
+      "skills missing",
+      "required skills",
+      "skill analysis",
+      "kaunse skills chahiye",
+      "skill gap analysis"
+    ],
+    "answer": "The Skill Gap Analysis widget on your Dashboard shows which skills you have and which are required for your matched scholarships.",
+    "pageLink": "/"
+  },
+  {
+    "id": 9,
+    "patterns": [
+      "documents",
+      "documents kahan",
+      "document upload",
+      "documents section",
+      "dastaveez",
+      "upload documents",
+      "documents kaise upload kare"
+    ],
+    "answer": "All your documents can be managed in the Documents section. You can upload, view, and replace documents there.",
+    "pageLink": "/documents"
+  },
+  {
+    "id": 10,
+    "patterns": [
+      "my applications",
+      "mera application",
+      "application status",
+      "application track",
+      "applied scholarships",
+      "application kahan dekhe"
+    ],
+    "answer": "You can view all your scholarship applications and their current status in the 'My Applications' section.",
+    "pageLink": "/my-applications"
+  },
+  {
+    "id": 11,
+    "patterns": [
+      "auto fill",
+      "auto-fill",
+      "automatic fill",
+      "form automatically fill",
+      "profile se fill",
+      "auto fill kaise kare"
+    ],
+    "answer": "Use the 'Auto-Fill from Profile' button on the scholarship application form or Resume Builder to automatically populate fields from your stored profile data.",
+    "pageLink": "/resume-builder"
+  },
+  {
+    "id": 12,
+    "patterns": [
+      "aadhaar",
+      "aadhar card",
+      "aadhaar upload",
+      "identity proof",
+      "id proof"
+    ],
+    "answer": "Upload your Aadhaar Card in the Documents section as identity proof.",
+    "pageLink": "/documents"
+  },
+  {
+    "id": 13,
+    "patterns": [
+      "deadline",
+      "last date",
+      "scholarship deadline",
+      "aakhri tarikh",
+      "submission date",
+      "apply by"
+    ],
+    "answer": "Each scholarship has a deadline shown on its card. Check the Scholarships page for upcoming deadlines.",
+    "pageLink": "/scholarships"
+  },
+  {
+    "id": 14,
+    "patterns": [
+      "login",
+      "login kaise kare",
+      "sign in",
+      "account",
+      "register",
+      "how to login"
+    ],
+    "answer": "Click the 'Login' button and authenticate using Internet Identity. It is secure and decentralized.",
+    "pageLink": "/login"
+  },
+  {
+    "id": 15,
+    "patterns": [
+      "help",
+      "support",
+      "problem",
+      "issue",
+      "sahayta",
+      "madad",
+      "faq",
+      "frequently asked"
+    ],
+    "answer": "Visit our Help page for frequently asked questions and guidance on using the platform.",
+    "pageLink": "/help"
+  }
+]
