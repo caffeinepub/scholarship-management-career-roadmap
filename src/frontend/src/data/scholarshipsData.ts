@@ -38,6 +38,7 @@ export interface StaticScholarship {
   fullEligibility: string;
   applicationCycleDuration: string;
   officialApplyUrl: string;
+  deadlineDate?: string;
 }
 
 export const scholarshipsData: StaticScholarship[] = [
@@ -70,6 +71,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Scholarship duration: 1–2 years for master's; 3 years for joint doctorates.`,
     officialApplyUrl:
       "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en",
+    deadlineDate: "2026-04-15",
   },
   {
     id: "commonwealth-scholarships",
@@ -99,6 +101,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: September/October.
 • Duration: 1 year (master's) or 3 years (PhD).`,
     officialApplyUrl: "https://cscuk.fcdo.gov.uk/apply/",
+    deadlineDate: "2026-05-10",
   },
   {
     id: "world-bank-jj-wbgsp",
@@ -127,6 +130,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: August/September.
 • Duration: 1–2 years depending on the master's programme.`,
     officialApplyUrl: "https://www.worldbank.org/en/programs/scholarships",
+    deadlineDate: "2026-03-25",
   },
   {
     id: "fulbright-program",
@@ -158,6 +162,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: August of the following year.
 • Duration: 1–2 years.`,
     officialApplyUrl: "https://www.usief.org.in/Fellowships.aspx",
+    deadlineDate: "2026-04-02",
   },
   {
     id: "chevening-scholarship",
@@ -189,6 +194,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: September/October.
 • Duration: 1 year (master's programme).`,
     officialApplyUrl: "https://www.chevening.org/apply/",
+    deadlineDate: "2026-04-05",
   },
   {
     id: "great-scholarship",
@@ -218,6 +224,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year.`,
     officialApplyUrl:
       "https://study-uk.britishcouncil.org/scholarships-funding/great-scholarships",
+    deadlineDate: "2026-06-20",
   },
   {
     id: "global-korea-scholarship",
@@ -250,6 +257,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year language training + 2 years (master's) or 3 years (PhD) or 4 years (undergraduate).`,
     officialApplyUrl:
       "https://www.studyinkorea.go.kr/en/sub/gks/allnew_invite.do",
+    deadlineDate: "2026-07-15",
   },
   {
     id: "mext-scholarship",
@@ -283,6 +291,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1.5–2 years (master's) or 3–4 years (PhD) or 5 years (undergraduate).`,
     officialApplyUrl:
       "https://www.studyinjapan.go.jp/en/smap_stopj-applications_research.html",
+    deadlineDate: "2026-08-01",
   },
   {
     id: "daad-scholarships",
@@ -312,6 +321,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: October of the following year (or April for some programmes).
 • Duration: 1–2 years (master's) or 3 years (PhD).`,
     officialApplyUrl: "https://www.daad.in/en/find-funding/",
+    deadlineDate: "2026-05-30",
   },
   {
     id: "australia-awards",
@@ -343,6 +353,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: February of the following year.
 • Duration: Varies (typically 2–4 years).`,
     officialApplyUrl: "https://www.australiaawards.gov.au/",
+    deadlineDate: "2026-04-30",
   },
   {
     id: "eiffel-excellence",
@@ -374,6 +385,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1–3 years depending on the programme.`,
     officialApplyUrl:
       "https://www.campusfrance.org/en/eiffel-scholarship-program-of-excellence",
+    deadlineDate: "2026-03-20",
   },
   {
     id: "goi-ies",
@@ -403,6 +415,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (master's) or up to 4 years (PhD).`,
     officialApplyUrl:
       "https://hea.ie/funding-governance-performance/funding/student-finance/gov-of-ireland-international-education-scholarship/",
+    deadlineDate: "2026-06-10",
   },
   {
     id: "holland-scholarship",
@@ -433,6 +446,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (the scholarship is a one-time grant, not renewable).`,
     officialApplyUrl:
       "https://www.studyinholland.nl/scholarships/highlighted-scholarships/holland-scholarship",
+    deadlineDate: "2026-07-01",
   },
 
   // ── Indian Scholarships (Government & Private) ────────────────────────────
@@ -462,6 +476,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: January–March.
 • Duration: Up to 3 years for undergraduate; 2 years for postgraduate.`,
     officialApplyUrl: "https://scholarships.gov.in/",
+    deadlineDate: "2026-04-01",
   },
   {
     id: "aicte-pragati",
@@ -488,6 +503,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: January–March.
 • Duration: Up to 4 years (degree) or 3 years (diploma).`,
     officialApplyUrl: "https://scholarships.gov.in/",
+    deadlineDate: "2026-05-15",
   },
   {
     id: "aicte-saksham",
@@ -515,6 +531,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: January–March.
 • Duration: Up to 4 years (degree) or 3 years (diploma).`,
     officialApplyUrl: "https://scholarships.gov.in/",
+    deadlineDate: "2026-05-20",
   },
   {
     id: "inspire-she",
@@ -543,6 +560,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: February–March.
 • Duration: Up to 5 years (for integrated master's) or 3 years (for bachelor's).`,
     officialApplyUrl: "https://online-inspire.gov.in/",
+    deadlineDate: "2026-06-05",
   },
   {
     id: "pmsss",
@@ -571,6 +589,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: September onwards.
 • Duration: Up to 4–5 years depending on the course.`,
     officialApplyUrl: "https://www.aicte-india.org/bureaus/jk",
+    deadlineDate: "2026-04-03",
   },
   {
     id: "post-matric-sc-st-obc",
@@ -599,6 +618,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Disbursement: January–March.
 • Duration: For the entire duration of the course.`,
     officialApplyUrl: "https://scholarships.gov.in/",
+    deadlineDate: "2026-05-25",
   },
   {
     id: "reliance-foundation-ug",
@@ -627,6 +647,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Scholarship announcement: July.
 • Duration: Up to 4 years (renewable annually based on performance).`,
     officialApplyUrl: "https://scholarships.reliancefoundation.org/",
+    deadlineDate: "2026-04-20",
   },
   {
     id: "hdfc-parivartan-ecss",
@@ -654,6 +675,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (renewable based on academic performance and continued financial need).`,
     officialApplyUrl:
       "https://www.buddy4study.com/scholarship/hdfc-bank-parivartan-ecss-programme",
+    deadlineDate: "2026-07-20",
   },
   {
     id: "tata-capital-pankh",
@@ -682,6 +704,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (renewable annually based on performance).`,
     officialApplyUrl:
       "https://www.buddy4study.com/scholarship/tata-capital-pankh-scholarship-programme",
+    deadlineDate: "2026-06-30",
   },
   {
     id: "aditya-birla-scholarship",
@@ -708,6 +731,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Scholarship announcement: November–December.
 • Duration: For the entire duration of the programme (renewable annually).`,
     officialApplyUrl: "https://www.adityabirlascholars.net/",
+    deadlineDate: "2026-07-10",
   },
 
   // ── Additional Global & Indian Scholarships ───────────────────────────────
@@ -742,6 +766,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: September.
 • Duration: 3–4 years (undergraduate), 1–2 years (master's), 3–4 years (PhD).`,
     officialApplyUrl: "https://stipendiumhungaricum.hu/apply/",
+    deadlineDate: "2026-04-10",
   },
   {
     id: "czech-republic-govt",
@@ -772,6 +797,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: February or September.
 • Duration: 1–2 years (master's) or 3 years (PhD).`,
     officialApplyUrl: "https://www.iccr.gov.in/content/czech-republic",
+    deadlineDate: "2026-08-15",
   },
   {
     id: "brunei-bdgs",
@@ -802,6 +828,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: August.
 • Duration: 3–4 years depending on the programme.`,
     officialApplyUrl: "https://www.mfa.gov.bn/Pages/Scholarships.aspx",
+    deadlineDate: "2026-05-05",
   },
   {
     id: "chulalongkorn-thailand",
@@ -831,6 +858,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: August.
 • Duration: 2 years (master's) or 3–4 years (PhD).`,
     officialApplyUrl: "https://www.grad.chula.ac.th/en/",
+    deadlineDate: "2026-06-15",
   },
   {
     id: "kaist-international",
@@ -859,6 +887,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: March (spring) or September (fall).
 • Duration: 2 years (master's) or 3–4 years (PhD).`,
     officialApplyUrl: "https://admission.kaist.ac.kr/intl-graduate/",
+    deadlineDate: "2026-04-25",
   },
   {
     id: "sbi-platinum-jubilee",
@@ -887,6 +916,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (renewable annually based on performance).`,
     officialApplyUrl:
       "https://www.buddy4study.com/scholarship/sbi-asha-scholarship-programme",
+    deadlineDate: "2026-08-20",
   },
   {
     id: "idfc-first-bank-engineering",
@@ -915,6 +945,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Duration: 1 year (renewable annually based on performance).`,
     officialApplyUrl:
       "https://www.buddy4study.com/scholarship/idfc-first-bank-engineering-scholarship",
+    deadlineDate: "2026-08-10",
   },
   {
     id: "adani-foundation-btech",
@@ -942,6 +973,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Scholarship announcement: October.
 • Duration: 1 year (renewable annually based on performance).`,
     officialApplyUrl: "https://www.adanifoundation.org/Education/Scholarship",
+    deadlineDate: "2026-07-25",
   },
   {
     id: "jn-tata-endowment",
@@ -973,6 +1005,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Programme start: August/September.
 • Repayment: Begins 1 year after completing the programme.`,
     officialApplyUrl: "https://www.jntataendowment.org/",
+    deadlineDate: "2026-03-28",
   },
   {
     id: "aga-khan-foundation",
@@ -1005,6 +1038,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Loan repayment: Begins after completing the programme.`,
     officialApplyUrl:
       "https://www.akdn.org/our-agencies/aga-khan-foundation/international-scholarship-programme",
+    deadlineDate: "2026-05-01",
   },
 
   // ── Open/Loan Schemes ─────────────────────────────────────────────────────
@@ -1035,6 +1069,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Repayment: Begins 1 year after completion of the course or 6 months after getting employment, whichever is earlier.
 • Loan tenure: Up to 5 years for repayment.`,
     officialApplyUrl: "https://nmdfc.org/education-loan-scheme/",
+    deadlineDate: "2026-06-01",
   },
   {
     id: "tmb-super-education-loan",
@@ -1067,6 +1102,7 @@ export const scholarshipsData: StaticScholarship[] = [
 • Loan tenure: Up to 15 years.`,
     officialApplyUrl:
       "https://www.tmb.in/personal-banking/loans/education-loan",
+    deadlineDate: "2026-09-01",
   },
 ];
 

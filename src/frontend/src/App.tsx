@@ -12,6 +12,7 @@ import React from "react";
 import DashboardLayout from "./components/DashboardLayout";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import ProfileSetupModal from "./components/ProfileSetupModal";
+import ScholarBot from "./components/ScholarBot";
 import Dashboard from "./pages/Dashboard";
 import Documents from "./pages/Documents";
 import Help from "./pages/Help";
@@ -39,6 +40,7 @@ function RootLayout() {
       <Outlet />
       <ProfileSetupModal />
       <Toaster />
+      <ScholarBot />
     </>
   );
 }

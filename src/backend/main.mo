@@ -326,7 +326,31 @@ actor {
 
     switch (existingStudentOpt) {
       case (?existingStudent) {
-        // Return the existing profileId instead of creating a new one
+        // Upsert: update all profile fields while preserving immutable fields
+        let updatedStudent : Student = {
+          profileId = existingStudent.profileId;
+          owner = caller;
+          fullName;
+          email;
+          mobileNumber;
+          gender;
+          category;
+          disabilityStatus;
+          annualFamilyIncome;
+          state;
+          district;
+          courseName;
+          courseLevel;
+          instituteName;
+          currentYear;
+          profileCompletionPercentage = existingStudent.profileCompletionPercentage;
+          createdAt = existingStudent.createdAt;
+          updatedAt = Time.now();
+          academicRecords = existingStudent.academicRecords;
+          careerAchievements = existingStudent.careerAchievements;
+          documents = existingStudent.documents;
+        };
+        students.add(existingStudent.profileId, updatedStudent);
         #ok(existingStudent.profileId);
       };
       case (null) {

@@ -24,6 +24,7 @@ import {
 import type React from "react";
 import { useMemo, useState } from "react";
 import type { Student } from "../backend";
+import DeadlineBadge from "../components/DeadlineBadge";
 import NoScholarshipsFound from "../components/NoScholarshipsFound";
 import ScholarshipDetailModal from "../components/ScholarshipDetailModal";
 import {
@@ -41,6 +42,8 @@ import {
   scholarshipsData,
 } from "../data/scholarshipsData";
 import { useGetMyProfile } from "../hooks/useQueries";
+import { useGetMyApplications } from "../hooks/useQueries";
+import { getDaysLeft, getDeadlineStatus } from "../utils/deadlineUtils";
 import { calculateMatchScore } from "../utils/matchScore";
 
 // ── Eligibility Hint ──────────────────────────────────────────────────────────
@@ -140,6 +143,7 @@ interface StaticScholarshipCardProps {
   onApply: (scholarship: StaticScholarship) => void;
   categoryColor: { header: string; badge: string; border: string };
   student?: Student | null;
+  isApplied?: boolean;
 }
 
 function StaticScholarshipCard({
@@ -147,6 +151,7 @@ function StaticScholarshipCard({
   onApply,
   categoryColor,
   student,
+  isApplied = false,
 }: StaticScholarshipCardProps) {
   const eligibility = getEligibilityHint(student ?? null, scholarship);
   return (
@@ -249,6 +254,14 @@ function StaticScholarshipCard({
         {/* Match Score Badge */}
         {student && (
           <MatchScoreBadge student={student} scholarship={scholarship} />
+        )}
+        {scholarship.deadlineDate && (
+          <DeadlineBadge deadlineDate={scholarship.deadlineDate} />
+        )}
+        {isApplied && (
+          <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border font-medium bg-green-100 text-green-700 border-green-200">
+            ✓ Applied
+          </span>
         )}
       </div>
 
@@ -489,6 +502,12 @@ export default function Scholarships() {
   const [selectedScholarship, setSelectedScholarship] =
     useState<StaticScholarship | null>(null);
   const [regionFilter, setRegionFilter] = useState<RegionFilter>("all");
+  const [deadlineFilter, setDeadlineFilter] = useState<
+    "All" | "Open" | "Closing Soon" | "Closed"
+  >("All");
+  const [sortByDeadline, setSortByDeadline] = useState(false);
+  const { data: myApplications = [] } = useGetMyApplications();
+  const appliedIds = myApplications.map((a) => a.scholarshipId.toString());
 
   const toggleStudyLevel = (level: StudyLevel) =>
     setSelectedStudyLevels((prev) =>
@@ -522,7 +541,7 @@ export default function Scholarships() {
     selectedTypes.length;
 
   const filteredScholarships = useMemo(() => {
-    return scholarshipsData.filter((s) => {
+    let results = scholarshipsData.filter((s) => {
       const q = searchText.toLowerCase();
       const matchesSearch =
         !q ||
@@ -562,6 +581,26 @@ export default function Scholarships() {
         matchesRegion
       );
     });
+
+    // Deadline filter
+    if (deadlineFilter !== "All") {
+      results = results.filter(
+        (s) =>
+          s.deadlineDate &&
+          getDeadlineStatus(s.deadlineDate) === deadlineFilter,
+      );
+    }
+
+    // Sort by deadline
+    if (sortByDeadline) {
+      results = [...results].sort(
+        (a, b) =>
+          getDaysLeft(a.deadlineDate ?? "9999-01-01") -
+          getDaysLeft(b.deadlineDate ?? "9999-01-01"),
+      );
+    }
+
+    return results;
   }, [
     searchText,
     selectedStudyLevels,
@@ -569,6 +608,8 @@ export default function Scholarships() {
     selectedLocations,
     selectedTypes,
     regionFilter,
+    deadlineFilter,
+    sortByDeadline,
   ]);
 
   // Group by category
@@ -682,6 +723,51 @@ export default function Scholarships() {
         activeFilterCount={activeFilterCount}
       />
 
+      {/* Deadline Filters */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(["All", "Open", "Closing Soon", "Closed"] as const).map((filter) => {
+          const colorMap: Record<string, string> = {
+            All: "border-border bg-card text-foreground",
+            Open: "border-green-200 bg-green-50 text-green-700",
+            "Closing Soon": "border-yellow-200 bg-yellow-50 text-yellow-700",
+            Closed: "border-red-200 bg-red-50 text-red-700",
+          };
+          const activeMap: Record<string, string> = {
+            All: "border-primary bg-primary text-primary-foreground",
+            Open: "border-green-500 bg-green-500 text-white",
+            "Closing Soon": "border-yellow-500 bg-yellow-500 text-white",
+            Closed: "border-red-500 bg-red-500 text-white",
+          };
+          const emojiMap: Record<string, string> = {
+            All: "📅",
+            Open: "🟢",
+            "Closing Soon": "🟡",
+            Closed: "🔴",
+          };
+          const isActive = deadlineFilter === filter;
+          return (
+            <button
+              key={filter}
+              type="button"
+              data-ocid={`scholarships.deadline_${filter.toLowerCase().replace(" ", "_")}.toggle`}
+              onClick={() => setDeadlineFilter(filter)}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${isActive ? activeMap[filter] : colorMap[filter]} hover:opacity-90`}
+            >
+              <span>{emojiMap[filter]}</span>
+              {filter === "All" ? "All Deadlines" : filter}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          data-ocid="scholarships.sort_deadline.toggle"
+          onClick={() => setSortByDeadline((p) => !p)}
+          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-all ${sortByDeadline ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground hover:border-primary/50"}`}
+        >
+          📊 Sort by Deadline
+        </button>
+      </div>
+
       {/* Results */}
       {filteredScholarships.length === 0 ? (
         <NoScholarshipsFound
@@ -719,6 +805,7 @@ export default function Scholarships() {
                       onApply={setSelectedScholarship}
                       categoryColor={colors}
                       student={profile ?? null}
+                      isApplied={appliedIds.includes(scholarship.id)}
                     />
                   ))}
                 </div>

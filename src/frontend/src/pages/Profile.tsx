@@ -9,11 +9,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle, Save, Sparkles, User } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { CheckCircle, CheckCircle2, Save, Sparkles, User } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Category, DisabilityStatus, Gender } from "../backend";
 import { useGetMyProfile, useRegisterStudent } from "../hooks/useQueries";
+import { loadProfileLocally } from "../utils/profileStore";
 
 const INDIAN_STATES = [
   "Andhra Pradesh",
@@ -120,12 +122,14 @@ const emptyForm: FormState = {
 };
 
 export default function Profile() {
-  const { profile, isLoading, isFetched } = useGetMyProfile();
+  const navigate = useNavigate();
+  const { profile } = useGetMyProfile();
   const registerStudent = useRegisterStudent();
 
   const [form, setForm] = useState<FormState>(emptyForm);
   const [formPopulated, setFormPopulated] = useState(false);
   const [educationLevel, setEducationLevel] = useState<string>("");
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
 
   const showBoardName =
     educationLevel === "10th Standard (Matriculation)" ||
@@ -135,7 +139,7 @@ export default function Profile() {
     educationLevel === "B.Tech (Engineering)" ||
     educationLevel === "MBBS (Medical)";
 
-  // Auto-populate form when profile data is available
+  // Auto-populate form from existing profile (backend or localStorage)
   useEffect(() => {
     if (profile && !formPopulated) {
       setForm({
@@ -156,6 +160,32 @@ export default function Profile() {
         universityName: "",
       });
       setFormPopulated(true);
+      return;
+    }
+
+    // Fallback: try localStorage directly if profile not populated yet
+    if (!formPopulated) {
+      const local = loadProfileLocally();
+      if (local) {
+        setForm({
+          fullName: local.fullName || "",
+          email: local.email || "",
+          mobileNumber: local.mobileNumber || "",
+          gender: local.gender || "",
+          category: local.category || "",
+          disabilityStatus: local.disabilityStatus || "",
+          annualFamilyIncome: local.annualFamilyIncome || "",
+          state: local.state || "",
+          district: local.district || "",
+          courseName: local.courseName || "",
+          courseLevel: local.courseLevel || "",
+          instituteName: local.instituteName || "",
+          currentYear: String(local.currentYear || 1),
+          boardName: "",
+          universityName: "",
+        });
+        setFormPopulated(true);
+      }
     }
   }, [profile, formPopulated]);
 
@@ -173,19 +203,22 @@ export default function Profile() {
     }));
   };
 
+  // Validate a single required field and show a friendly error
+  const validateRequired = (value: string, label: string): boolean => {
+    if (!value.trim()) {
+      toast.error(`${label} is required`, {
+        description: "Please fill in this field to continue.",
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleSave = async () => {
-    if (!form.fullName.trim()) {
-      toast.error("Full name is required");
-      return;
-    }
-    if (!form.email.trim()) {
-      toast.error("Email is required");
-      return;
-    }
-    if (!form.mobileNumber.trim()) {
-      toast.error("Mobile number is required");
-      return;
-    }
+    // —— Validation ——
+    if (!validateRequired(form.fullName, "Full name")) return;
+    if (!validateRequired(form.email, "Email")) return;
+    if (!validateRequired(form.mobileNumber, "Mobile number")) return;
     if (!form.gender) {
       toast.error("Gender is required");
       return;
@@ -198,32 +231,22 @@ export default function Profile() {
       toast.error("Disability status is required");
       return;
     }
-    if (!form.annualFamilyIncome.trim()) {
-      toast.error("Annual family income is required");
+    if (!validateRequired(form.annualFamilyIncome, "Annual family income"))
       return;
-    }
     if (!form.state) {
       toast.error("State is required");
       return;
     }
-    if (!form.district.trim()) {
-      toast.error("District is required");
-      return;
-    }
-    if (!form.courseName.trim()) {
-      toast.error("Course name is required");
-      return;
-    }
+    if (!validateRequired(form.district, "District")) return;
+    if (!validateRequired(form.courseName, "Course name")) return;
     if (!form.courseLevel) {
       toast.error("Education level is required");
       return;
     }
-    if (!form.instituteName.trim()) {
-      toast.error("Institute name is required");
-      return;
-    }
+    if (!validateRequired(form.instituteName, "Institute name")) return;
 
     try {
+      // Save to localStorage (no backend dependency)
       await registerStudent.mutateAsync({
         fullName: form.fullName,
         email: form.email,
@@ -239,33 +262,26 @@ export default function Profile() {
         instituteName: form.instituteName,
         currentYear: BigInt(Number.parseInt(form.currentYear) || 1),
       });
-      toast.success("Profile registered successfully!");
+
+      // Show success banner
+      setShowSuccessBanner(true);
+
+      toast.success("Profile Registered Successfully", {
+        description: "Your profile has been saved. Redirecting to dashboard...",
+        duration: 3000,
+      });
+
+      // Redirect to dashboard after a brief moment
+      setTimeout(() => {
+        void navigate({ to: "/" });
+      }, 1200);
     } catch (err: unknown) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to save profile",
-      );
+      const msg = err instanceof Error ? err.message : "Failed to save profile";
+      toast.error("Registration Failed", {
+        description: msg,
+      });
     }
   };
-
-  if (isLoading && !isFetched) {
-    return (
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Skeleton className="w-10 h-10 rounded-full" />
-          <Skeleton className="h-7 w-48" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Array.from({ length: 12 }, (_, i) => i).map((i) => (
-            <div key={`profile-skeleton-${i}`} className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ))}
-        </div>
-        <Skeleton className="h-10 w-40" />
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -292,8 +308,23 @@ export default function Profile() {
         )}
       </div>
 
+      {/* Success banner (shown after registration) */}
+      {showSuccessBanner && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+          <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-green-800">
+              Profile Registered Successfully!
+            </p>
+            <p className="text-xs text-green-700 mt-0.5">
+              Your data has been saved locally. Redirecting to dashboard…
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Profile data loaded banner with Auto-Fill button */}
-      {profile && (
+      {profile && !showSuccessBanner && (
         <div className="mb-6 space-y-3">
           {/* Green "data loaded" banner */}
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2.5">
@@ -316,7 +347,8 @@ export default function Profile() {
                 );
               }}
             >
-              <Sparkles className="w-3 h-3" />✨ Auto-Fill from Profile
+              <Sparkles className="w-3 h-3" />
+              &#10024; Auto-Fill from Profile
             </Button>
           </div>
           {/* Profile ID */}
@@ -344,6 +376,7 @@ export default function Profile() {
                 value={form.fullName}
                 onChange={(e) => setField("fullName", e.target.value)}
                 placeholder="Enter your full name"
+                data-ocid="profile.input"
               />
             </div>
             <div className="space-y-1.5">
@@ -354,6 +387,7 @@ export default function Profile() {
                 value={form.email}
                 onChange={(e) => setField("email", e.target.value)}
                 placeholder="Enter your email"
+                data-ocid="profile.input"
               />
             </div>
             <div className="space-y-1.5">
@@ -363,6 +397,7 @@ export default function Profile() {
                 value={form.mobileNumber}
                 onChange={(e) => setField("mobileNumber", e.target.value)}
                 placeholder="10-digit mobile number"
+                data-ocid="profile.input"
               />
             </div>
             <div className="space-y-1.5">
@@ -371,7 +406,7 @@ export default function Profile() {
                 value={form.gender}
                 onValueChange={(v) => setField("gender", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -387,7 +422,7 @@ export default function Profile() {
                 value={form.category}
                 onValueChange={(v) => setField("category", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -404,7 +439,7 @@ export default function Profile() {
                 value={form.disabilityStatus}
                 onValueChange={(v) => setField("disabilityStatus", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select disability status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -428,6 +463,7 @@ export default function Profile() {
                 value={form.annualFamilyIncome}
                 onChange={(e) => setField("annualFamilyIncome", e.target.value)}
                 placeholder="e.g. 3,00,000"
+                data-ocid="profile.input"
               />
             </div>
           </div>
@@ -445,7 +481,7 @@ export default function Profile() {
                 value={form.state}
                 onValueChange={(v) => setField("state", v)}
               >
-                <SelectTrigger>
+                <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
@@ -464,6 +500,7 @@ export default function Profile() {
                 value={form.district}
                 onChange={(e) => setField("district", e.target.value)}
                 placeholder="Enter your district"
+                data-ocid="profile.input"
               />
             </div>
           </div>
@@ -482,6 +519,7 @@ export default function Profile() {
                 value={form.courseName}
                 onChange={(e) => setField("courseName", e.target.value)}
                 placeholder="e.g. B.Tech Computer Science"
+                data-ocid="profile.input"
               />
             </div>
 
@@ -542,6 +580,7 @@ export default function Profile() {
                 value={form.instituteName}
                 onChange={(e) => setField("instituteName", e.target.value)}
                 placeholder="Enter your institute name"
+                data-ocid="profile.input"
               />
             </div>
             <div className="space-y-1.5">
@@ -554,6 +593,7 @@ export default function Profile() {
                 value={form.currentYear}
                 onChange={(e) => setField("currentYear", e.target.value)}
                 placeholder="e.g. 2"
+                data-ocid="profile.input"
               />
             </div>
           </div>
@@ -564,7 +604,7 @@ export default function Profile() {
           <Button
             onClick={handleSave}
             disabled={registerStudent.isPending}
-            className="gap-2"
+            className="gap-2 min-w-[160px]"
             data-ocid="profile.submit_button"
           >
             {registerStudent.isPending ? (

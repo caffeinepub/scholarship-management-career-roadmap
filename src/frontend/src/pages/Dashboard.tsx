@@ -19,9 +19,11 @@ import {
 } from "lucide-react";
 import React from "react";
 import type { Student } from "../backend";
+import DeadlineDashboardSection from "../components/DeadlineDashboardSection";
 import ProfileCompletionMeter from "../components/ProfileCompletionMeter";
+import ReminderSystem from "../components/ReminderSystem";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
-import { useGetMyProfile } from "../hooks/useQueries";
+import { useGetMyApplications, useGetMyProfile } from "../hooks/useQueries";
 
 // ── Risk Assessment ────────────────────────────────────────────────────────────
 function RiskBadge({ profile }: { profile: Student | null }) {
@@ -235,6 +237,8 @@ function getMissingItems(profile: Student | null): string[] {
 export default function Dashboard() {
   const { identity } = useInternetIdentity();
   const { profile, isLoading, isFetched } = useGetMyProfile();
+  const { data: myApplications = [] } = useGetMyApplications();
+  const appliedIds = myApplications.map((a) => a.scholarshipId.toString());
 
   const principalShort = identity?.getPrincipal().toString().slice(0, 12) ?? "";
   const completionPct = profile
@@ -474,6 +478,9 @@ export default function Dashboard() {
           {/* Career Roadmap teaser */}
           <RoadmapTeaser profile={profile ?? null} />
 
+          {/* Deadline Dashboard */}
+          <DeadlineDashboardSection appliedScholarshipIds={appliedIds} />
+
           {/* Quick Actions */}
           <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
             <h3 className="text-sm font-semibold text-foreground mb-4">
@@ -552,3 +559,4 @@ export default function Dashboard() {
     </div>
   );
 }
+<ReminderSystem />;
