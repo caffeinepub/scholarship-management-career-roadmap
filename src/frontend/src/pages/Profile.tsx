@@ -53,6 +53,467 @@ const INDIAN_STATES = [
   "Puducherry",
 ];
 
+const DISTRICTS_BY_STATE: Record<string, string[]> = {
+  "Andhra Pradesh": [
+    "Visakhapatnam",
+    "Vijayawada",
+    "Guntur",
+    "Nellore",
+    "Kurnool",
+    "Tirupati",
+    "Kakinada",
+    "Rajahmundry",
+    "Kadapa",
+    "Anantapur",
+  ],
+  "Arunachal Pradesh": [
+    "Itanagar",
+    "Naharlagun",
+    "Pasighat",
+    "Tawang",
+    "Ziro",
+    "Bomdila",
+    "Along",
+    "Tezu",
+    "Khonsa",
+    "Roing",
+  ],
+  Assam: [
+    "Guwahati",
+    "Dispur",
+    "Silchar",
+    "Dibrugarh",
+    "Jorhat",
+    "Tezpur",
+    "Nagaon",
+    "Tinsukia",
+    "Bongaigaon",
+    "Karimganj",
+  ],
+  Bihar: [
+    "Patna",
+    "Gaya",
+    "Bhagalpur",
+    "Muzaffarpur",
+    "Purnia",
+    "Darbhanga",
+    "Ara",
+    "Begusarai",
+    "Katihar",
+    "Munger",
+  ],
+  Chhattisgarh: [
+    "Raipur",
+    "Bhilai",
+    "Bilaspur",
+    "Korba",
+    "Rajnandgaon",
+    "Durg",
+    "Ambikapur",
+    "Jagdalpur",
+    "Raigarh",
+    "Dhamtari",
+  ],
+  Goa: ["North Goa", "South Goa"],
+  Gujarat: [
+    "Ahmedabad",
+    "Surat",
+    "Vadodara",
+    "Rajkot",
+    "Bhavnagar",
+    "Jamnagar",
+    "Gandhinagar",
+    "Junagadh",
+    "Anand",
+    "Navsari",
+  ],
+  Haryana: [
+    "Faridabad",
+    "Gurugram",
+    "Hisar",
+    "Rohtak",
+    "Panipat",
+    "Ambala",
+    "Karnal",
+    "Sonipat",
+    "Yamunanagar",
+    "Rewari",
+  ],
+  "Himachal Pradesh": [
+    "Shimla",
+    "Mandi",
+    "Solan",
+    "Dharamshala",
+    "Baddi",
+    "Kullu",
+    "Hamirpur",
+    "Una",
+    "Bilaspur",
+    "Chamba",
+  ],
+  Jharkhand: [
+    "Ranchi",
+    "Jamshedpur",
+    "Dhanbad",
+    "Bokaro",
+    "Hazaribagh",
+    "Deoghar",
+    "Giridih",
+    "Phusro",
+    "Ramgarh",
+    "Medininagar",
+  ],
+  Karnataka: [
+    "Bengaluru",
+    "Mysuru",
+    "Hubballi",
+    "Mangaluru",
+    "Belagavi",
+    "Davanagere",
+    "Ballari",
+    "Vijayapura",
+    "Shivamogga",
+    "Tumakuru",
+  ],
+  Kerala: [
+    "Thiruvananthapuram",
+    "Kochi",
+    "Kozhikode",
+    "Thrissur",
+    "Kollam",
+    "Palakkad",
+    "Alappuzha",
+    "Kannur",
+    "Malappuram",
+    "Kottayam",
+  ],
+  "Madhya Pradesh": [
+    "Bhopal",
+    "Indore",
+    "Gwalior",
+    "Jabalpur",
+    "Ujjain",
+    "Sagar",
+    "Dewas",
+    "Satna",
+    "Ratlam",
+    "Rewa",
+  ],
+  Maharashtra: [
+    "Mumbai",
+    "Pune",
+    "Nagpur",
+    "Thane",
+    "Nashik",
+    "Aurangabad",
+    "Solapur",
+    "Amravati",
+    "Kolhapur",
+    "Nanded",
+  ],
+  Manipur: [
+    "Imphal",
+    "Thoubal",
+    "Bishnupur",
+    "Churachandpur",
+    "Chandel",
+    "Ukhrul",
+    "Senapati",
+    "Tamenglong",
+    "Jiribam",
+    "Kakching",
+  ],
+  Meghalaya: [
+    "Shillong",
+    "Tura",
+    "Jowai",
+    "Nongstoin",
+    "Williamnagar",
+    "Baghmara",
+    "Resubelpara",
+    "Ampati",
+    "Mairang",
+    "Nongpoh",
+  ],
+  Mizoram: [
+    "Aizawl",
+    "Lunglei",
+    "Champhai",
+    "Serchhip",
+    "Kolasib",
+    "Lawngtlai",
+    "Mamit",
+    "Saiha",
+    "Hnahthial",
+    "Khawzawl",
+  ],
+  Nagaland: [
+    "Kohima",
+    "Dimapur",
+    "Mokokchung",
+    "Tuensang",
+    "Wokha",
+    "Zunheboto",
+    "Mon",
+    "Phek",
+    "Kiphire",
+    "Longleng",
+  ],
+  Odisha: [
+    "Bhubaneswar",
+    "Cuttack",
+    "Rourkela",
+    "Berhampur",
+    "Sambalpur",
+    "Puri",
+    "Balasore",
+    "Bhadrak",
+    "Baripada",
+    "Jharsuguda",
+  ],
+  Punjab: [
+    "Ludhiana",
+    "Amritsar",
+    "Jalandhar",
+    "Patiala",
+    "Bathinda",
+    "Mohali",
+    "Pathankot",
+    "Hoshiarpur",
+    "Gurdaspur",
+    "Firozpur",
+  ],
+  Rajasthan: [
+    "Jaipur",
+    "Jodhpur",
+    "Kota",
+    "Bikaner",
+    "Ajmer",
+    "Udaipur",
+    "Bhilwara",
+    "Alwar",
+    "Bharatpur",
+    "Sikar",
+  ],
+  Sikkim: ["Gangtok", "Namchi", "Mangan", "Gyalshing", "Soreng", "Pakyong"],
+  "Tamil Nadu": [
+    "Chennai",
+    "Coimbatore",
+    "Madurai",
+    "Tiruchirappalli",
+    "Salem",
+    "Tirunelveli",
+    "Vellore",
+    "Erode",
+    "Thoothukudi",
+    "Dindigul",
+  ],
+  Telangana: [
+    "Hyderabad",
+    "Warangal",
+    "Nizamabad",
+    "Karimnagar",
+    "Ramagundam",
+    "Khammam",
+    "Mahbubnagar",
+    "Nalgonda",
+    "Adilabad",
+    "Suryapet",
+  ],
+  Tripura: [
+    "Agartala",
+    "Udaipur",
+    "Dharmanagar",
+    "Kailasahar",
+    "Belonia",
+    "Sabroom",
+    "Ambassa",
+    "Khowai",
+    "Teliamura",
+    "Sonamura",
+  ],
+  "Uttar Pradesh": [
+    "Lucknow",
+    "Kanpur",
+    "Ghaziabad",
+    "Agra",
+    "Varanasi",
+    "Meerut",
+    "Prayagraj",
+    "Bareilly",
+    "Aligarh",
+    "Moradabad",
+  ],
+  Uttarakhand: [
+    "Dehradun",
+    "Haridwar",
+    "Roorkee",
+    "Haldwani",
+    "Rudrapur",
+    "Kashipur",
+    "Rishikesh",
+    "Kotdwar",
+    "Ramnagar",
+    "Pithoragarh",
+  ],
+  "West Bengal": [
+    "Kolkata",
+    "Howrah",
+    "Durgapur",
+    "Asansol",
+    "Siliguri",
+    "Bardhaman",
+    "Malda",
+    "Baharampur",
+    "Habra",
+    "Kharagpur",
+  ],
+  Delhi: [
+    "Central Delhi",
+    "East Delhi",
+    "New Delhi",
+    "North Delhi",
+    "North East Delhi",
+    "North West Delhi",
+    "Shahdara",
+    "South Delhi",
+    "South East Delhi",
+    "South West Delhi",
+    "West Delhi",
+  ],
+  "Jammu and Kashmir": [
+    "Srinagar",
+    "Jammu",
+    "Anantnag",
+    "Baramulla",
+    "Udhampur",
+    "Sopore",
+    "Leh",
+    "Kargil",
+    "Pulwama",
+    "Rajouri",
+  ],
+  Ladakh: ["Leh", "Kargil"],
+  Chandigarh: ["Chandigarh"],
+  Puducherry: ["Puducherry", "Karaikal", "Mahe", "Yanam"],
+};
+
+const COLLEGES_LIST = [
+  // IITs
+  "IIT Bombay",
+  "IIT Delhi",
+  "IIT Madras",
+  "IIT Kanpur",
+  "IIT Kharagpur",
+  "IIT Roorkee",
+  "IIT Guwahati",
+  "IIT Hyderabad",
+  "IIT Indore",
+  "IIT Jodhpur",
+  "IIT Mandi",
+  "IIT Patna",
+  "IIT Ropar",
+  "IIT Bhubaneswar",
+  "IIT Gandhinagar",
+  "IIT Tirupati",
+  "IIT Dhanbad (ISM)",
+  "IIT Jammu",
+  "IIT Varanasi (BHU)",
+  // NITs
+  "NIT Trichy",
+  "NIT Warangal",
+  "NIT Surathkal",
+  "NIT Calicut",
+  "NIT Rourkela",
+  "NIT Allahabad",
+  "NIT Kurukshetra",
+  "NIT Jaipur",
+  "NIT Nagpur",
+  "NIT Silchar",
+  "NIT Hamirpur",
+  "NIT Jalandhar",
+  "NIT Bhopal",
+  "NIT Agartala",
+  "NIT Durgapur",
+  "NIT Patna",
+  "NIT Srinagar",
+  "NIT Goa",
+  "NIT Manipur",
+  "NIT Meghalaya",
+  "NIT Mizoram",
+  "NIT Puducherry",
+  "NIT Sikkim",
+  "NIT Uttarakhand",
+  // Central Universities
+  "Delhi University",
+  "JNU Delhi",
+  "BHU Varanasi",
+  "AMU Aligarh",
+  "University of Hyderabad",
+  "Jadavpur University",
+  "Calcutta University",
+  "Mumbai University",
+  "Pune University",
+  "Osmania University",
+  "Mysore University",
+  "Anna University Chennai",
+  // IIMs
+  "IIM Ahmedabad",
+  "IIM Bangalore",
+  "IIM Calcutta",
+  "IIM Lucknow",
+  "IIM Kozhikode",
+  "IIM Indore",
+  "IIM Shillong",
+  "IIM Rohtak",
+  "IIM Raipur",
+  "IIM Ranchi",
+  "IIM Tiruchirappalli",
+  "IIM Udaipur",
+  "IIM Visakhapatnam",
+  "IIM Amritsar",
+  "IIM Bodhgaya",
+  "IIM Jammu",
+  "IIM Nagpur",
+  "IIM Sambalpur",
+  "IIM Sirmaur",
+  // Medical
+  "AIIMS Delhi",
+  "AIIMS Bhopal",
+  "AIIMS Bhubaneswar",
+  "AIIMS Jodhpur",
+  "AIIMS Patna",
+  "AIIMS Raipur",
+  "AIIMS Rishikesh",
+  "JIPMER Puducherry",
+  "Maulana Azad Medical College",
+  "Grant Medical College Mumbai",
+  "Kasturba Medical College",
+  // State & Deemed Universities
+  "VIT Vellore",
+  "SRM University Chennai",
+  "Manipal Institute of Technology",
+  "PSG College of Technology",
+  "Coimbatore Institute of Technology",
+  "RV College of Engineering Bangalore",
+  "PES University Bangalore",
+  "MS Ramaiah Institute of Technology",
+  "JSS Academy of Technical Education",
+  "KLE Technological University",
+  "DSCE Bangalore",
+  "BITS Pilani",
+  "BITS Goa",
+  "BITS Hyderabad",
+  "Thapar University",
+  "KIIT University",
+  "SASTRA University",
+  "LPU Jalandhar",
+  "Amity University Noida",
+  "Chandigarh University",
+  // Other
+  "Other",
+];
+
 const EDUCATION_LEVELS = [
   "5th Standard",
   "8th Standard",
@@ -130,6 +591,9 @@ export default function Profile() {
   const [formPopulated, setFormPopulated] = useState(false);
   const [educationLevel, setEducationLevel] = useState<string>("");
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  // Track the selected college from dropdown separately from custom text
+  const [selectedCollege, setSelectedCollege] = useState<string>("");
+  const [customInstitute, setCustomInstitute] = useState<string>("");
 
   const showBoardName =
     educationLevel === "10th Standard (Matriculation)" ||
@@ -138,6 +602,11 @@ export default function Profile() {
   const showUniversityName =
     educationLevel === "B.Tech (Engineering)" ||
     educationLevel === "MBBS (Medical)";
+
+  // Districts for the currently selected state
+  const availableDistricts = form.state
+    ? (DISTRICTS_BY_STATE[form.state] ?? [])
+    : [];
 
   // Auto-populate form from existing profile (backend or localStorage)
   useEffect(() => {
@@ -159,6 +628,14 @@ export default function Profile() {
         boardName: "",
         universityName: "",
       });
+      // Pre-fill college select if known
+      const savedInstitute = profile.instituteName ?? "";
+      if (COLLEGES_LIST.includes(savedInstitute)) {
+        setSelectedCollege(savedInstitute);
+      } else if (savedInstitute) {
+        setSelectedCollege("Other");
+        setCustomInstitute(savedInstitute);
+      }
       setFormPopulated(true);
       return;
     }
@@ -184,6 +661,13 @@ export default function Profile() {
           boardName: "",
           universityName: "",
         });
+        const savedInstitute = local.instituteName || "";
+        if (COLLEGES_LIST.includes(savedInstitute)) {
+          setSelectedCollege(savedInstitute);
+        } else if (savedInstitute) {
+          setSelectedCollege("Other");
+          setCustomInstitute(savedInstitute);
+        }
         setFormPopulated(true);
       }
     }
@@ -201,6 +685,31 @@ export default function Profile() {
       boardName: "",
       universityName: "",
     }));
+  };
+
+  const handleStateChange = (value: string) => {
+    setField("state", value);
+    // Reset district when state changes
+    setField("district", "");
+  };
+
+  const handleCollegeSelect = (value: string) => {
+    setSelectedCollege(value);
+    if (value && value !== "Other") {
+      setField("instituteName", value);
+    } else if (value === "Other") {
+      // Keep whatever is in customInstitute
+      setField("instituteName", customInstitute);
+    }
+  };
+
+  const handleCustomInstituteChange = (value: string) => {
+    setCustomInstitute(value);
+    // Custom text input always wins when typed
+    setField("instituteName", value);
+    if (value) {
+      setSelectedCollege("Other");
+    }
   };
 
   // Validate a single required field and show a friendly error
@@ -475,16 +984,15 @@ export default function Profile() {
             Location
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* State — scrollable dropdown with blank option */}
             <div className="space-y-1.5">
               <Label>State *</Label>
-              <Select
-                value={form.state}
-                onValueChange={(v) => setField("state", v)}
-              >
+              <Select value={form.state} onValueChange={handleStateChange}>
                 <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="">— Select state —</SelectItem>
                   {INDIAN_STATES.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
@@ -493,15 +1001,44 @@ export default function Profile() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* District — scrollable dropdown based on selected state */}
             <div className="space-y-1.5">
-              <Label htmlFor="district">District *</Label>
-              <Input
-                id="district"
-                value={form.district}
-                onChange={(e) => setField("district", e.target.value)}
-                placeholder="Enter your district"
-                data-ocid="profile.input"
-              />
+              <Label>District *</Label>
+              {availableDistricts.length > 0 ? (
+                <Select
+                  value={form.district}
+                  onValueChange={(v) => setField("district", v)}
+                  disabled={!form.state}
+                >
+                  <SelectTrigger data-ocid="profile.select">
+                    <SelectValue
+                      placeholder={
+                        form.state ? "Select district" : "Select state first"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectItem value="">— Select district —</SelectItem>
+                    {availableDistricts.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id="district"
+                  value={form.district}
+                  onChange={(e) => setField("district", e.target.value)}
+                  placeholder={
+                    form.state ? "Enter your district" : "Select state first"
+                  }
+                  disabled={!form.state}
+                  data-ocid="profile.input"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -533,7 +1070,7 @@ export default function Profile() {
                 <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select education level" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {EDUCATION_LEVELS.map((level) => (
                     <SelectItem key={level} value={level}>
                       {level}
@@ -573,16 +1110,43 @@ export default function Profile() {
               </div>
             )}
 
+            {/* Institute Name — scrollable Select + custom text input */}
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="instituteName">Institute Name *</Label>
+              <Select
+                value={selectedCollege}
+                onValueChange={handleCollegeSelect}
+              >
+                <SelectTrigger data-ocid="profile.select">
+                  <SelectValue placeholder="Select your institute" />
+                </SelectTrigger>
+                <SelectContent className="max-h-60 overflow-y-auto">
+                  <SelectItem value="">— Select institute —</SelectItem>
+                  {COLLEGES_LIST.map((college) => (
+                    <SelectItem key={college} value={college}>
+                      {college}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 id="instituteName"
-                value={form.instituteName}
-                onChange={(e) => setField("instituteName", e.target.value)}
-                placeholder="Enter your institute name"
+                value={customInstitute}
+                onChange={(e) => handleCustomInstituteChange(e.target.value)}
+                placeholder="Or type your institute name"
+                className="mt-2"
                 data-ocid="profile.input"
               />
+              {form.instituteName && (
+                <p className="text-xs text-muted-foreground">
+                  Selected:{" "}
+                  <span className="font-medium text-foreground">
+                    {form.instituteName}
+                  </span>
+                </p>
+              )}
             </div>
+
             <div className="space-y-1.5">
               <Label htmlFor="currentYear">Current Year *</Label>
               <Input
