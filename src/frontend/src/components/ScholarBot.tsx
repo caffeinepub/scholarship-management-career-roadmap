@@ -417,16 +417,10 @@ export default function ScholarBot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [studentProfile, setStudentProfile] = useState<LocalProfile | null>(
-    null,
+  const [studentProfile, _setStudentProfile] = useState<LocalProfile | null>(
+    () => loadProfileLocally(),
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Load profile from localStorage on mount
-  useEffect(() => {
-    const p = loadProfileLocally();
-    setStudentProfile(p);
-  }, []);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — only run when open flips to true
   useEffect(() => {

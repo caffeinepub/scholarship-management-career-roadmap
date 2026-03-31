@@ -987,12 +987,17 @@ export default function Profile() {
             {/* State — scrollable dropdown with blank option */}
             <div className="space-y-1.5">
               <Label>State *</Label>
-              <Select value={form.state} onValueChange={handleStateChange}>
+              <Select
+                value={form.state}
+                onValueChange={(v) =>
+                  handleStateChange(v === "__none__" ? "" : v)
+                }
+              >
                 <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60 overflow-y-auto">
-                  <SelectItem value="">— Select state —</SelectItem>
+                  <SelectItem value="__none__">— Select state —</SelectItem>
                   {INDIAN_STATES.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
@@ -1008,7 +1013,9 @@ export default function Profile() {
               {availableDistricts.length > 0 ? (
                 <Select
                   value={form.district}
-                  onValueChange={(v) => setField("district", v)}
+                  onValueChange={(v) =>
+                    setField("district", v === "__none__" ? "" : v)
+                  }
                   disabled={!form.state}
                 >
                   <SelectTrigger data-ocid="profile.select">
@@ -1019,7 +1026,9 @@ export default function Profile() {
                     />
                   </SelectTrigger>
                   <SelectContent className="max-h-60 overflow-y-auto">
-                    <SelectItem value="">— Select district —</SelectItem>
+                    <SelectItem value="__none__">
+                      — Select district —
+                    </SelectItem>
                     {availableDistricts.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
@@ -1115,13 +1124,15 @@ export default function Profile() {
               <Label htmlFor="instituteName">Institute Name *</Label>
               <Select
                 value={selectedCollege}
-                onValueChange={handleCollegeSelect}
+                onValueChange={(v) =>
+                  handleCollegeSelect(v === "__none__" ? "" : v)
+                }
               >
                 <SelectTrigger data-ocid="profile.select">
                   <SelectValue placeholder="Select your institute" />
                 </SelectTrigger>
                 <SelectContent className="max-h-60 overflow-y-auto">
-                  <SelectItem value="">— Select institute —</SelectItem>
+                  <SelectItem value="__none__">— Select institute —</SelectItem>
                   {COLLEGES_LIST.map((college) => (
                     <SelectItem key={college} value={college}>
                       {college}

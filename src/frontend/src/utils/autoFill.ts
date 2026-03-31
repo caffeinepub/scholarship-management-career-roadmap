@@ -28,7 +28,11 @@ export function autoFillApplication(profile: Student | null): AutoFillResult {
   if (profile.mobileNumber) filled.mobileNumber = profile.mobileNumber;
   else missingFields.push("Mobile Number");
 
-  if (profile.category) filled.category = profile.category;
+  const categoryStr =
+    typeof profile.category === "string"
+      ? (profile.category as string)
+      : (Object.keys(profile.category as object)[0] ?? "");
+  if (categoryStr) filled.category = categoryStr;
   else missingFields.push("Category");
 
   if (profile.annualFamilyIncome) {
@@ -38,10 +42,11 @@ export function autoFillApplication(profile: Student | null): AutoFillResult {
   }
 
   // Best marks from academic records
-  const bestRecord = profile.academicRecords.reduce(
-    (best, r) => (r.percentage > (best?.percentage ?? 0) ? r : best),
-    profile.academicRecords[0] ?? null,
-  );
+  const records = profile.academicRecords ?? [];
+  const bestRecord =
+    records.length > 0
+      ? records.reduce((best, r) => (r.percentage > best.percentage ? r : best))
+      : null;
   if (bestRecord) {
     filled.marks = bestRecord.percentage.toString();
     filled.institution = bestRecord.institution;

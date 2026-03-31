@@ -45,7 +45,7 @@ function RiskBadge({ profile }: { profile: Student | null }) {
     );
   }
   const hasAllDocs =
-    profile.documents.filter((d) => d.uploadStatus).length >= 4;
+    (profile.documents ?? []).filter((d) => d.uploadStatus).length >= 4;
   if (!hasAllDocs) {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium border bg-red-50 border-red-200 text-red-700">
@@ -417,7 +417,12 @@ export default function Dashboard() {
                   <span className="font-mono text-primary">
                     {profile.profileId.toString()}
                   </span>{" "}
-                  · {profile.category.toUpperCase()} · {profile.state}
+                  ·{" "}
+                  {(typeof profile.category === "string"
+                    ? profile.category
+                    : (Object.keys(profile.category as object)[0] ?? "")
+                  ).toUpperCase()}{" "}
+                  · {profile.state}
                 </p>
               </div>
             </div>
@@ -523,7 +528,7 @@ export default function Dashboard() {
               </h3>
               {(() => {
                 const pct = Number(profile.profileCompletionPercentage);
-                const docCount = profile.documents.filter(
+                const docCount = (profile.documents ?? []).filter(
                   (d) => d.uploadStatus,
                 ).length;
                 const score = Math.min(
@@ -556,7 +561,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+      <ReminderSystem />
     </div>
   );
 }
-<ReminderSystem />;

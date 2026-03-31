@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Loader2,
   Shield,
+  UserRound,
 } from "lucide-react";
 import React from "react";
 import { useState } from "react";
@@ -67,6 +68,28 @@ export default function LoginPage() {
     }
   };
 
+  const handleGuestLogin = () => {
+    localStorage.setItem("token", `guest-${Date.now()}`);
+    localStorage.setItem("isGuest", "true");
+    // Set a minimal guest profile so the dashboard loads cleanly
+    const guestProfile = {
+      profileId: `guest-${Date.now()}`,
+      name: "Guest Student",
+      email: "",
+      phone: "",
+      course: "",
+      year: "",
+      income: "",
+      state: "",
+      district: "",
+      skills: [],
+      isGuest: true,
+    };
+    localStorage.setItem("studentProfile", JSON.stringify(guestProfile));
+    localStorage.setItem("scholarSync_profile", JSON.stringify(guestProfile));
+    window.location.href = "/";
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -94,7 +117,6 @@ export default function LoginPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background to-accent/5 pointer-events-none" />
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/8 rounded-full blur-3xl pointer-events-none translate-y-1/2 -translate-x-1/2" />
@@ -119,7 +141,6 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Feature highlights */}
               <ul className="space-y-3">
                 {[
                   "Smart eligibility matching based on your profile",
@@ -134,22 +155,14 @@ export default function LoginPage() {
                 ))}
               </ul>
 
-              {/* CTA */}
-              <div className="pt-2">
+              {/* CTA buttons */}
+              <div className="pt-2 space-y-3">
+                {/* Primary: Internet Identity */}
                 <button
                   type="button"
                   onClick={handleLogin}
                   disabled={isLoggingIn || isAuthenticated}
-                  className="
-                    inline-flex items-center gap-3 px-8 py-4 rounded-xl
-                    bg-primary text-primary-foreground font-semibold text-base
-                    hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25
-                    active:scale-[0.98]
-                    transition-all duration-200 ease-out
-                    disabled:opacity-60 disabled:cursor-not-allowed
-                    cursor-pointer
-                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2
-                  "
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98] transition-all duration-200 ease-out disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   {isLoggingIn ? (
                     <>
@@ -163,22 +176,46 @@ export default function LoginPage() {
                     </>
                   )}
                 </button>
-                <p className="mt-3 text-xs text-muted-foreground">
+
+                <p className="text-xs text-muted-foreground">
                   No password required · Decentralized & secure · Free to use
                 </p>
-                <div className="flex items-center gap-3 mt-4">
+
+                <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-xs text-muted-foreground">OR</span>
                   <div className="flex-1 h-px bg-border" />
                 </div>
+
+                {/* OTP login (mobile or email) */}
                 <button
                   type="button"
                   onClick={() => setShowOtpModal(true)}
                   data-ocid="login.secondary_button"
-                  className="mt-3 inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium text-sm hover:bg-muted transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium text-sm hover:bg-muted transition-colors"
                 >
-                  📱 Login with Mobile OTP
+                  <span>📱</span> Login with Mobile / Email OTP
                 </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">OR</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+
+                {/* Guest login */}
+                <button
+                  type="button"
+                  onClick={handleGuestLogin}
+                  data-ocid="login.guest_button"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-dashed border-border bg-transparent text-muted-foreground font-medium text-sm hover:bg-muted/50 hover:text-foreground transition-colors"
+                >
+                  <UserRound className="w-4 h-4" />
+                  Continue as Guest
+                </button>
+                <p className="text-xs text-muted-foreground">
+                  Explore the platform without signing up. Data won't be saved.
+                </p>
               </div>
             </div>
 
@@ -192,7 +229,6 @@ export default function LoginPage() {
                     className="w-full object-cover"
                   />
                 </div>
-                {/* Floating stat cards */}
                 <div className="absolute -bottom-4 -left-4 bg-card border border-border rounded-xl px-4 py-3 shadow-lg">
                   <p className="text-2xl font-bold text-primary">500+</p>
                   <p className="text-xs text-muted-foreground">
@@ -201,7 +237,7 @@ export default function LoginPage() {
                 </div>
                 <div className="absolute -top-4 -right-4 bg-card border border-border rounded-xl px-4 py-3 shadow-lg">
                   <p
-                    className="text-2xl font-bold text-accent-foreground"
+                    className="text-2xl font-bold"
                     style={{ color: "oklch(0.55 0.18 65)" }}
                   >
                     ₹50Cr+
@@ -258,7 +294,7 @@ export default function LoginPage() {
           <p>
             Built with <span className="text-red-500">♥</span> using{" "}
             <a
-              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname || "scholarpath")}`}
+              href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname || "scholarsync")}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-primary hover:underline cursor-pointer"
@@ -268,11 +304,13 @@ export default function LoginPage() {
           </p>
         </div>
       </footer>
+
       <AuthModal
         open={showOtpModal}
         onOpenChange={setShowOtpModal}
         onSuccess={() => {
           localStorage.setItem("token", `demo-otp-${Date.now()}`);
+          localStorage.removeItem("isGuest");
           window.location.href = "/";
         }}
       />

@@ -36,7 +36,12 @@ export function loadProfileLocally(): LocalProfile | null {
     // Try both keys
     const raw =
       localStorage.getItem(KEY) || localStorage.getItem("studentProfile");
-    if (raw) return JSON.parse(raw) as LocalProfile;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return { skills: [], careerGoal: "", ...parsed } as LocalProfile;
+      }
+    }
   } catch {}
   return null;
 }

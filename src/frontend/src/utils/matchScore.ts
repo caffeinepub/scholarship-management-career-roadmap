@@ -111,7 +111,11 @@ export function calculateMatchScore(
 
   // +20 category check
   const eligibleCats = getEligibleCategories(scholarship.name);
-  if (eligibleCats.includes(student.category.toLowerCase())) {
+  const catStr =
+    typeof student.category === "string"
+      ? (student.category as string).toLowerCase()
+      : (Object.keys(student.category as object)[0] ?? "");
+  if (eligibleCats.includes(catStr)) {
     score += 20;
     breakdown.category = 20;
   }

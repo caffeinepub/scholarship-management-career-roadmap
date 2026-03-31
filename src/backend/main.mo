@@ -11,6 +11,7 @@ import Principal "mo:core/Principal";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Outcall "http-outcalls/outcall";
 
 
 // Add migration function via with-clause.
@@ -182,12 +183,23 @@ actor {
     is_archived : Bool;
   };
 
+  // ── OTP Types ─────────────────────────────────────────────────────────────
+  type OtpEntry = {
+    code : Text;
+    expiresAt : Int; // nanoseconds timestamp
+    attempts : Nat;
+  };
+
   let userProfiles = Map.empty<Principal, UserProfile>();
   var students = Map.empty<Nat, Student>();
   var documents = Map.empty<Nat, DocumentRecord>();
   let scholarships = Map.empty<Nat, Scholarship>();
   let applications = Map.empty<Nat, ScholarshipApplication>();
   let extendedScholarships = Map.empty<Nat, ExtendedScholarship>();
+
+  // OTP store: phone -> OtpEntry
+  var otpStore = Map.empty<Text, OtpEntry>();
+  var fast2smsApiKey : Text = "";
 
   // Keyword maps (per document type)
   let documentKeywords = Map.fromIter(
@@ -217,6 +229,11 @@ actor {
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  // ── HTTP Transform (required for outcalls) ─────────────────────────────────
+  public query func transform(input : Outcall.TransformationInput) : async Outcall.TransformationOutput {
+    { input.response with headers = [] };
+  };
 
   // ── Seed Data ─────────────────────────────────────────────────────────────────────
   func seedData() {
@@ -676,6 +693,99 @@ actor {
     switch (documentKeywords.get(documentType)) {
       case (?keywords) { keywords };
       case (null) { [] };
+    };
+  };
+
+  // ── OTP System (Real SMS via Fast2SMS) ───────────────────────────────────────
+
+  /// Admin-only: set the Fast2SMS API key for real OTP delivery.
+  public shared ({ caller }) func setFast2SmsApiKey(key : Text) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only administrators can set the SMS API key");
+    };
+    fast2smsApiKey := key;
+  };
+
+  /// Generate a 6-digit OTP code from current time.
+  func generateOtpCode() : Text {
+    let raw = Int.abs(Time.now()) % 900000 + 100000;
+    raw.toText();
+  };
+
+  /// Send OTP to the given mobile number via Fast2SMS (or demo mode if key not set).
+  /// No authentication required — caller can be anonymous.
+  public shared func sendPhoneOtp(phone : Text) : async { #ok : Text; #err : Text } {
+    if (phone.size() < 5) {
+      return #err("Invalid phone number");
+    };
+
+    let code = generateOtpCode();
+    let expiresAt = Time.now() + (5 * 60 * 1_000_000_000); // 5 minutes in nanoseconds
+
+    let entry : OtpEntry = {
+      code;
+      expiresAt;
+      attempts = 0;
+    };
+    otpStore.add(phone, entry);
+
+    if (fast2smsApiKey != "") {
+      // Real SMS via Fast2SMS
+      let body = "{\"route\":\"q\",\"message\":\"Your ScholarSync OTP is " # code # ". Valid for 5 minutes. Do not share with anyone.\",\"language\":\"english\",\"flash\":0,\"numbers\":\"" # phone # "\"}";
+      try {
+        let _response = await Outcall.httpPostRequest(
+          "https://www.fast2sms.com/dev/bulkV2",
+          [
+            { name = "authorization"; value = fast2smsApiKey },
+            { name = "Content-Type"; value = "application/json" },
+          ],
+          body,
+          transform,
+        );
+        #ok("OTP sent via SMS to " # phone);
+      } catch (_error) {
+        // Clean up OTP store on failure
+        otpStore.remove(phone);
+        #err("SMS delivery failed. Please try again.");
+      };
+    } else {
+      // Demo mode: OTP is stored and can be verified (frontend shows demo notice)
+      #ok("demo:" # code);
+    };
+  };
+
+  /// Verify the OTP entered by the user.
+  /// Returns ok with a session token string on success, or err with reason.
+  /// No authentication required — caller can be anonymous.
+  public shared func verifyPhoneOtp(phone : Text, code : Text) : async { #ok : Text; #err : Text } {
+    switch (otpStore.get(phone)) {
+      case (null) {
+        #err("No OTP was requested for this number. Please request a new one.");
+      };
+      case (?entry) {
+        if (Time.now() > entry.expiresAt) {
+          otpStore.remove(phone);
+          #err("OTP has expired. Please request a new one.");
+        } else if (entry.attempts >= 3) {
+          otpStore.remove(phone);
+          #err("Maximum attempts exceeded. Please request a new OTP.");
+        } else if (entry.code == code) {
+          otpStore.remove(phone);
+          // Return a simple session token (phone-based)
+          let token = "otp-verified-" # phone # "-" # Int.abs(Time.now()).toText();
+          #ok(token);
+        } else {
+          let newAttempts = entry.attempts + 1;
+          let updatedEntry : OtpEntry = {
+            code = entry.code;
+            expiresAt = entry.expiresAt;
+            attempts = newAttempts;
+          };
+          otpStore.add(phone, updatedEntry);
+          let remaining : Nat = if (newAttempts < 3) { 3 - newAttempts } else { 0 };
+          #err("Invalid OTP. " # remaining.toText() # " attempt(s) remaining.");
+        };
+      };
     };
   };
 };

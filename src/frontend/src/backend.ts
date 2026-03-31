@@ -191,6 +191,9 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     uploadDocument(studentId: bigint, documentName: string, filePath: string): Promise<string>;
     verifyDocument(studentId: bigint, documentType: string, ocrText: string): Promise<DocumentVerificationResult>;
+    setFast2SmsApiKey(key: string): Promise<void>;
+    sendPhoneOtp(phone: string): Promise<{ __kind__: "ok"; ok: string } | { __kind__: "err"; err: string }>;
+    verifyPhoneOtp(phone: string, code: string): Promise<{ __kind__: "ok"; ok: string } | { __kind__: "err"; err: string }>;
 }
 import type { AcademicRecord as _AcademicRecord, CareerAchievement as _CareerAchievement, Category as _Category, DisabilityStatus as _DisabilityStatus, DocumentReference as _DocumentReference, DocumentVerificationResult as _DocumentVerificationResult, Gender as _Gender, Student as _Student, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -396,6 +399,21 @@ export class Backend implements backendInterface {
             const result = await this.actor.verifyDocument(arg0, arg1, arg2);
             return from_candid_DocumentVerificationResult_n26(this._uploadFile, this._downloadFile, result);
         }
+    }
+    async setFast2SmsApiKey(arg0: string): Promise<void> {
+        if (this.processError) {
+            try { await this.actor.setFast2SmsApiKey(arg0); } catch (e) { this.processError(e); throw new Error('unreachable'); }
+        } else { await this.actor.setFast2SmsApiKey(arg0); }
+    }
+    async sendPhoneOtp(arg0: string): Promise<{ __kind__: 'ok'; ok: string } | { __kind__: 'err'; err: string }> {
+        const result = await this.actor.sendPhoneOtp(arg0);
+        if ('ok' in result) return { __kind__: 'ok', ok: result.ok as string };
+        return { __kind__: 'err', err: (result as { err: string }).err };
+    }
+    async verifyPhoneOtp(arg0: string, arg1: string): Promise<{ __kind__: 'ok'; ok: string } | { __kind__: 'err'; err: string }> {
+        const result = await this.actor.verifyPhoneOtp(arg0, arg1);
+        if ('ok' in result) return { __kind__: 'ok', ok: result.ok as string };
+        return { __kind__: 'err', err: (result as { err: string }).err };
     }
 }
 function from_candid_AcademicRecord_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _AcademicRecord): AcademicRecord {

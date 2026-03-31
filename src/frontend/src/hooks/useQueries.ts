@@ -157,7 +157,7 @@ function simulateLocalVerification(
   }
 
   // Confidence scoring
-  let confidence = 1; // length check passed
+  let confidence = 0;
   const matched = keywords.filter((k) => text.includes(k.toLowerCase()));
   if (matched.length >= 1) confidence += 1;
   if (matched.length >= 3) confidence += 1;
@@ -474,7 +474,7 @@ export function useAddDocument() {
 // ── Scholarships ──────────────────────────────────────────────────────────────
 
 export function useGetScholarships() {
-  return useQuery<never[]>({
+  return useQuery<unknown[]>({
     queryKey: ["scholarships"],
     queryFn: async () => [],
     staleTime: Number.POSITIVE_INFINITY,

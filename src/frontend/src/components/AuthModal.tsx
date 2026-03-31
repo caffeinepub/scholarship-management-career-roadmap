@@ -10,12 +10,15 @@ import {
   ArrowLeft,
   ChevronDown,
   GraduationCap,
+  Mail,
+  Phone,
   Search,
   Shield,
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
 
 interface AuthModalProps {
   open: boolean;
@@ -47,33 +50,42 @@ const COUNTRIES = [
 ];
 
 type Country = (typeof COUNTRIES)[number];
+type ContactMode = "mobile" | "email";
 
 export default function AuthModal({
   open,
   onOpenChange,
   onSuccess,
 }: AuthModalProps) {
+  const { actor } = useActor();
   const [step, setStep] = useState<1 | 2>(1);
+  const [contactMode, setContactMode] = useState<ContactMode>("mobile");
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [mobile, setMobile] = useState("");
-  const [mobileError, setMobileError] = useState("");
+  const [email, setEmail] = useState("");
+  const [inputError, setInputError] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [countrySearch, setCountrySearch] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
+  // For demo mode: store the generated OTP so user can see it
+  const [demoOtpCode, setDemoOtpCode] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const resetModal = () => {
     setStep(1);
+    setContactMode("mobile");
     setSelectedCountry(COUNTRIES[0]);
     setMobile("");
-    setMobileError("");
+    setEmail("");
+    setInputError("");
     setOtp(["", "", "", "", "", ""]);
     setIsLoading(false);
     setCountryDropdownOpen(false);
     setCountrySearch("");
     setResendTimer(0);
+    setDemoOtpCode("");
   };
 
   const handleOpenChange = (value: boolean) => {
@@ -93,22 +105,79 @@ export default function AuthModal({
       c.code.includes(countrySearch),
   );
 
-  const handleSendOtp = async () => {
-    if (!mobile || !/^\d{5,15}$/.test(mobile)) {
-      setMobileError("Please enter a valid mobile number");
-      return;
+  const getMaskedContact = () => {
+    if (contactMode === "mobile") {
+      const masked = mobile.slice(0, -4).replace(/\d/g, "*") + mobile.slice(-4);
+      return `${selectedCountry.code} ${masked}`;
     }
-    setMobileError("");
+    const [user = "", domain = ""] = email.split("@");
+    const maskedUser =
+      user.slice(0, 2) + "*".repeat(Math.max(0, user.length - 2));
+    return `${maskedUser}@${domain}`;
+  };
+
+  const handleSendOtp = async () => {
+    if (contactMode === "mobile") {
+      if (!mobile || !/^\d{5,15}$/.test(mobile)) {
+        setInputError("Please enter a valid mobile number");
+        return;
+      }
+    } else {
+      if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+        setInputError("Please enter a valid email address");
+        return;
+      }
+    }
+    setInputError("");
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setIsLoading(false);
-    toast.success(`OTP sent to ${selectedCountry.code} ${mobile}`, {
-      description: "Use any 6-digit code for demo.",
-    });
-    setOtp(["", "", "", "", "", ""]);
-    setResendTimer(30);
-    setStep(2);
-    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+
+    if (contactMode === "mobile" && actor) {
+      // Real backend OTP via Fast2SMS
+      const phoneWithCode = selectedCountry.code.replace("+", "") + mobile;
+      try {
+        const result = await actor.sendPhoneOtp(phoneWithCode);
+        setIsLoading(false);
+        if (result.__kind__ === "ok") {
+          const okVal = result.ok;
+          if (okVal.startsWith("demo:")) {
+            // Demo mode — API key not yet set. Show the code to the user.
+            const code = okVal.replace("demo:", "");
+            setDemoOtpCode(code);
+            toast.info(`Demo Mode: Your OTP is ${code}`, {
+              description:
+                "Set your Fast2SMS API key via admin to enable real SMS delivery.",
+              duration: 15000,
+            });
+          } else {
+            setDemoOtpCode("");
+            toast.success(`OTP sent to ${selectedCountry.code} ${mobile}`, {
+              description: "Check your SMS for the 6-digit verification code.",
+            });
+          }
+          setOtp(["", "", "", "", "", ""]);
+          setResendTimer(30);
+          setStep(2);
+          setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        } else {
+          toast.error(result.err);
+        }
+      } catch (_e) {
+        setIsLoading(false);
+        toast.error("Could not send OTP. Please try again.");
+      }
+    } else {
+      // Email or actor not ready — simulate
+      await new Promise((r) => setTimeout(r, 1000));
+      setIsLoading(false);
+      const dest = email;
+      toast.success(`OTP sent to ${dest}`, {
+        description: "Use any 6-digit code for demo.",
+      });
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(30);
+      setStep(2);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -157,28 +226,80 @@ export default function AuthModal({
       return;
     }
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setIsLoading(false);
-    toast.success("Registration successful! Welcome to ScholarSync 🎓");
-    handleOpenChange(false);
-    if (onSuccess) onSuccess();
+    const enteredCode = otp.join("");
+
+    if (contactMode === "mobile" && actor) {
+      const phoneWithCode = selectedCountry.code.replace("+", "") + mobile;
+      try {
+        const result = await actor.verifyPhoneOtp(phoneWithCode, enteredCode);
+        setIsLoading(false);
+        if (result.__kind__ === "ok") {
+          toast.success("Mobile Verified ✅ Welcome to ScholarSync!");
+          handleOpenChange(false);
+          if (onSuccess) onSuccess();
+        } else {
+          toast.error(result.err);
+          // Clear OTP boxes on failure so user can re-enter
+          setOtp(["", "", "", "", "", ""]);
+          setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        }
+      } catch (_e) {
+        setIsLoading(false);
+        toast.error("Verification failed. Please try again.");
+      }
+    } else {
+      // Email mode: accept any 6-digit code (demo)
+      await new Promise((r) => setTimeout(r, 1200));
+      setIsLoading(false);
+      toast.success("Registration successful! Welcome to ScholarSync 🎓");
+      handleOpenChange(false);
+      if (onSuccess) onSuccess();
+    }
   };
 
   const handleResend = async () => {
     if (resendTimer > 0) return;
     setIsLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setIsLoading(false);
-    setOtp(["", "", "", "", "", ""]);
-    setResendTimer(30);
-    toast.success("OTP resent successfully");
-    setTimeout(() => otpRefs.current[0]?.focus(), 100);
+
+    if (contactMode === "mobile" && actor) {
+      const phoneWithCode = selectedCountry.code.replace("+", "") + mobile;
+      try {
+        const result = await actor.sendPhoneOtp(phoneWithCode);
+        setIsLoading(false);
+        if (result.__kind__ === "ok") {
+          const okVal = result.ok;
+          if (okVal.startsWith("demo:")) {
+            const code = okVal.replace("demo:", "");
+            setDemoOtpCode(code);
+            toast.info(`Demo Mode: New OTP is ${code}`, { duration: 15000 });
+          } else {
+            setDemoOtpCode("");
+            toast.success("OTP resent via SMS");
+          }
+          setOtp(["", "", "", "", "", ""]);
+          setResendTimer(30);
+          setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        } else {
+          toast.error(result.err);
+        }
+      } catch (_e) {
+        setIsLoading(false);
+        toast.error("Could not resend OTP. Please try again.");
+      }
+    } else {
+      await new Promise((r) => setTimeout(r, 800));
+      setIsLoading(false);
+      setOtp(["", "", "", "", "", ""]);
+      setResendTimer(30);
+      toast.success("OTP resent successfully");
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-[420px] p-0 overflow-visible"
+        className="sm:max-w-[440px] p-0 overflow-visible"
         data-ocid="auth.modal"
       >
         <DialogHeader className="px-6 pt-6 pb-0">
@@ -197,7 +318,7 @@ export default function AuthModal({
                 ScholarSync
               </DialogTitle>
               <p className="text-xs text-muted-foreground">
-                Student Registration
+                Student Login / Registration
               </p>
             </div>
           </div>
@@ -205,7 +326,11 @@ export default function AuthModal({
 
         {/* Step indicator */}
         <div className="flex items-center px-6 pt-4">
-          <StepDot step={1} current={step} label="Mobile" />
+          <StepDot
+            step={1}
+            current={step}
+            label={contactMode === "mobile" ? "Mobile" : "Email"}
+          />
           <div
             className="flex-1 h-0.5 rounded-full mx-2 transition-colors duration-500"
             style={{
@@ -219,10 +344,19 @@ export default function AuthModal({
         <div className="px-6 pb-6 pt-5">
           {step === 1 ? (
             <StepOne
+              contactMode={contactMode}
+              setContactMode={(m) => {
+                setContactMode(m);
+                setInputError("");
+                setMobile("");
+                setEmail("");
+              }}
               mobile={mobile}
               setMobile={setMobile}
-              mobileError={mobileError}
-              setMobileError={setMobileError}
+              email={email}
+              setEmail={setEmail}
+              inputError={inputError}
+              setInputError={setInputError}
               isLoading={isLoading}
               selectedCountry={selectedCountry}
               setSelectedCountry={setSelectedCountry}
@@ -235,12 +369,13 @@ export default function AuthModal({
             />
           ) : (
             <StepTwo
-              mobile={mobile}
-              selectedCountry={selectedCountry}
+              maskedContact={getMaskedContact()}
+              contactMode={contactMode}
               otp={otp}
               otpRefs={otpRefs}
               isLoading={isLoading}
               resendTimer={resendTimer}
+              demoOtpCode={demoOtpCode}
               onOtpChange={handleOtpChange}
               onOtpKeyDown={handleOtpKeyDown}
               onOtpPaste={handleOtpPaste}
@@ -290,10 +425,14 @@ function StepDot({
 }
 
 function StepOne({
+  contactMode,
+  setContactMode,
   mobile,
   setMobile,
-  mobileError,
-  setMobileError,
+  email,
+  setEmail,
+  inputError,
+  setInputError,
   isLoading,
   selectedCountry,
   setSelectedCountry,
@@ -304,10 +443,14 @@ function StepOne({
   filteredCountries,
   onSubmit,
 }: {
+  contactMode: ContactMode;
+  setContactMode: (m: ContactMode) => void;
   mobile: string;
   setMobile: (v: string) => void;
-  mobileError: string;
-  setMobileError: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
+  inputError: string;
+  setInputError: (v: string) => void;
   isLoading: boolean;
   selectedCountry: Country;
   setSelectedCountry: (c: Country) => void;
@@ -333,62 +476,214 @@ function StepOne({
     return () => document.removeEventListener("mousedown", handler);
   }, [setCountryDropdownOpen]);
 
+  const canSubmit =
+    contactMode === "mobile" ? mobile.length >= 5 : email.length >= 5;
+
   return (
     <div className="space-y-5">
+      {/* Mode toggle */}
+      <div
+        className="flex rounded-xl p-1 gap-1"
+        style={{ background: "oklch(0.93 0.02 265)" }}
+      >
+        <button
+          type="button"
+          onClick={() => setContactMode("mobile")}
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          style={{
+            background: contactMode === "mobile" ? "white" : "transparent",
+            color:
+              contactMode === "mobile"
+                ? "oklch(0.25 0.08 265)"
+                : "oklch(0.55 0.03 265)",
+            boxShadow:
+              contactMode === "mobile"
+                ? "0 1px 4px oklch(0 0 0 / 0.1)"
+                : "none",
+          }}
+        >
+          <Phone className="w-3.5 h-3.5" />
+          Mobile
+        </button>
+        <button
+          type="button"
+          onClick={() => setContactMode("email")}
+          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+          style={{
+            background: contactMode === "email" ? "white" : "transparent",
+            color:
+              contactMode === "email"
+                ? "oklch(0.25 0.08 265)"
+                : "oklch(0.55 0.03 265)",
+            boxShadow:
+              contactMode === "email" ? "0 1px 4px oklch(0 0 0 / 0.1)" : "none",
+          }}
+        >
+          <Mail className="w-3.5 h-3.5" />
+          Email
+        </button>
+      </div>
+
       <div>
         <p className="text-sm font-medium text-foreground mb-0.5">
-          Enter your mobile number
+          {contactMode === "mobile"
+            ? "Enter your mobile number"
+            : "Enter your email address"}
         </p>
         <p className="text-xs text-muted-foreground">
-          {"We'll send a verification code to confirm your identity"}
+          {contactMode === "mobile"
+            ? "OTP will be sent via SMS to your mobile"
+            : "We'll send a verification code to your email"}
         </p>
       </div>
 
-      {/* Phone input row */}
-      <div className="relative" ref={dropdownRef}>
+      {contactMode === "mobile" ? (
+        /* Phone input row */
+        <div className="relative" ref={dropdownRef}>
+          <div
+            className="flex items-stretch rounded-xl"
+            style={{
+              border: `1.5px solid ${
+                inputError ? "oklch(0.577 0.245 27)" : "oklch(0.82 0.04 265)"
+              }`,
+            }}
+          >
+            {/* Country code button */}
+            <button
+              type="button"
+              onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+              data-ocid="auth.select"
+              className="flex items-center gap-1.5 px-3 py-3 hover:bg-muted/60 transition-colors duration-150 shrink-0 rounded-l-xl"
+              style={{ borderRight: "1.5px solid oklch(0.82 0.04 265)" }}
+            >
+              <span className="text-xl leading-none">
+                {selectedCountry.flag}
+              </span>
+              <span
+                className="text-sm font-semibold"
+                style={{ color: "oklch(0.25 0.06 265)" }}
+              >
+                {selectedCountry.code}
+              </span>
+              <ChevronDown
+                className="w-3.5 h-3.5 transition-transform duration-200"
+                style={{
+                  color: "oklch(0.55 0.04 265)",
+                  transform: countryDropdownOpen
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                }}
+              />
+            </button>
+
+            {/* Number input */}
+            <input
+              type="tel"
+              inputMode="numeric"
+              maxLength={15}
+              placeholder="Enter mobile number"
+              value={mobile}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, "");
+                setMobile(val);
+                if (inputError) setInputError("");
+              }}
+              onKeyDown={(e) => e.key === "Enter" && onSubmit()}
+              data-ocid="auth.input"
+              className="flex-1 bg-transparent px-3 py-3 text-sm outline-none text-foreground min-w-0"
+              style={{ caretColor: "oklch(0.42 0.18 265)" }}
+            />
+          </div>
+
+          {/* Country dropdown */}
+          {countryDropdownOpen && (
+            <div
+              className="absolute left-0 top-full mt-2 w-full bg-popover rounded-xl shadow-2xl z-[100] overflow-hidden"
+              style={{ border: "1.5px solid oklch(0.82 0.04 265)" }}
+            >
+              <div className="p-2 border-b border-border">
+                <div
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
+                  style={{ background: "oklch(0.95 0.01 265)" }}
+                >
+                  <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search country or code"
+                    value={countrySearch}
+                    onChange={(e) => setCountrySearch(e.target.value)}
+                    className="flex-1 bg-transparent text-xs outline-none text-foreground"
+                    // biome-ignore lint/a11y/noAutofocus: intentional for UX
+                    autoFocus
+                  />
+                </div>
+              </div>
+              <ScrollArea className="h-48">
+                {filteredCountries.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">
+                    No countries found
+                  </p>
+                ) : (
+                  filteredCountries.map((country) => (
+                    <button
+                      key={`${country.name}-${country.code}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCountry(country);
+                        setCountryDropdownOpen(false);
+                        setCountrySearch("");
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/60 transition-colors text-left"
+                      style={{
+                        background:
+                          selectedCountry.name === country.name
+                            ? "oklch(0.92 0.04 265)"
+                            : undefined,
+                      }}
+                    >
+                      <span className="text-lg leading-none shrink-0">
+                        {country.flag}
+                      </span>
+                      <span className="flex-1 text-foreground font-medium text-xs">
+                        {country.name}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-mono">
+                        {country.code}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </ScrollArea>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Email input */
         <div
           className="flex items-stretch rounded-xl"
           style={{
-            border: `1.5px solid ${mobileError ? "oklch(0.577 0.245 27)" : "oklch(0.82 0.04 265)"}`,
+            border: `1.5px solid ${
+              inputError ? "oklch(0.577 0.245 27)" : "oklch(0.82 0.04 265)"
+            }`,
           }}
         >
-          {/* Country code button */}
-          <button
-            type="button"
-            onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
-            data-ocid="auth.select"
-            className="flex items-center gap-1.5 px-3 py-3 hover:bg-muted/60 transition-colors duration-150 shrink-0 rounded-l-xl"
+          <div
+            className="flex items-center px-3"
             style={{ borderRight: "1.5px solid oklch(0.82 0.04 265)" }}
           >
-            <span className="text-xl leading-none">{selectedCountry.flag}</span>
-            <span
-              className="text-sm font-semibold"
-              style={{ color: "oklch(0.25 0.06 265)" }}
-            >
-              {selectedCountry.code}
-            </span>
-            <ChevronDown
-              className="w-3.5 h-3.5 transition-transform duration-200"
-              style={{
-                color: "oklch(0.55 0.04 265)",
-                transform: countryDropdownOpen
-                  ? "rotate(180deg)"
-                  : "rotate(0deg)",
-              }}
+            <Mail
+              className="w-4 h-4"
+              style={{ color: "oklch(0.55 0.04 265)" }}
             />
-          </button>
-
-          {/* Number input */}
+          </div>
           <input
-            type="tel"
-            inputMode="numeric"
-            maxLength={15}
-            placeholder="Enter mobile number"
-            value={mobile}
+            type="email"
+            inputMode="email"
+            placeholder="Enter email address"
+            value={email}
             onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, "");
-              setMobile(val);
-              if (mobileError) setMobileError("");
+              setEmail(e.target.value);
+              if (inputError) setInputError("");
             }}
             onKeyDown={(e) => e.key === "Enter" && onSubmit()}
             data-ocid="auth.input"
@@ -396,77 +691,15 @@ function StepOne({
             style={{ caretColor: "oklch(0.42 0.18 265)" }}
           />
         </div>
+      )}
 
-        {/* Country dropdown */}
-        {countryDropdownOpen && (
-          <div
-            className="absolute left-0 top-full mt-2 w-full bg-popover rounded-xl shadow-2xl z-[100] overflow-hidden"
-            style={{ border: "1.5px solid oklch(0.82 0.04 265)" }}
-          >
-            <div className="p-2 border-b border-border">
-              <div
-                className="flex items-center gap-2 px-2 py-1.5 rounded-lg"
-                style={{ background: "oklch(0.95 0.01 265)" }}
-              >
-                <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search country or code"
-                  value={countrySearch}
-                  onChange={(e) => setCountrySearch(e.target.value)}
-                  className="flex-1 bg-transparent text-xs outline-none text-foreground"
-                  // biome-ignore lint/a11y/noAutofocus: intentional for UX
-                  autoFocus
-                />
-              </div>
-            </div>
-            <ScrollArea className="h-48">
-              {filteredCountries.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-6">
-                  No countries found
-                </p>
-              ) : (
-                filteredCountries.map((country) => (
-                  <button
-                    key={`${country.name}-${country.code}`}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCountry(country);
-                      setCountryDropdownOpen(false);
-                      setCountrySearch("");
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-muted/60 transition-colors text-left"
-                    style={{
-                      background:
-                        selectedCountry.name === country.name
-                          ? "oklch(0.92 0.04 265)"
-                          : undefined,
-                    }}
-                  >
-                    <span className="text-lg leading-none shrink-0">
-                      {country.flag}
-                    </span>
-                    <span className="flex-1 text-foreground font-medium text-xs">
-                      {country.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {country.code}
-                    </span>
-                  </button>
-                ))
-              )}
-            </ScrollArea>
-          </div>
-        )}
-      </div>
-
-      {mobileError && (
+      {inputError && (
         <p
           className="text-xs"
           style={{ color: "oklch(0.55 0.22 27)" }}
           data-ocid="auth.error_state"
         >
-          {mobileError}
+          {inputError}
         </p>
       )}
 
@@ -491,7 +724,7 @@ function StepOne({
       <Button
         className="w-full h-11 text-sm font-semibold rounded-xl"
         onClick={onSubmit}
-        disabled={isLoading || mobile.length < 5}
+        disabled={isLoading || !canSubmit}
         data-ocid="auth.submit_button"
         style={{
           background:
@@ -506,20 +739,27 @@ function StepOne({
             Sending OTP...
           </span>
         ) : (
-          "Get OTP →"
+          `Get OTP via ${contactMode === "mobile" ? "SMS" : "Email"} →`
         )}
       </Button>
+
+      {contactMode === "mobile" && (
+        <p className="text-xs text-center text-muted-foreground">
+          📡 OTP is sent using SMS API service
+        </p>
+      )}
     </div>
   );
 }
 
 function StepTwo({
-  mobile,
-  selectedCountry,
+  maskedContact,
+  contactMode,
   otp,
   otpRefs,
   isLoading,
   resendTimer,
+  demoOtpCode,
   onOtpChange,
   onOtpKeyDown,
   onOtpPaste,
@@ -527,12 +767,13 @@ function StepTwo({
   onBack,
   onResend,
 }: {
-  mobile: string;
-  selectedCountry: Country;
+  maskedContact: string;
+  contactMode: ContactMode;
   otp: string[];
   otpRefs: React.MutableRefObject<(HTMLInputElement | null)[]>;
   isLoading: boolean;
   resendTimer: number;
+  demoOtpCode: string;
   onOtpChange: (i: number, v: string) => void;
   onOtpKeyDown: (i: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
   onOtpPaste: (e: React.ClipboardEvent) => void;
@@ -560,16 +801,46 @@ function StepTwo({
         <div>
           <p className="text-sm font-semibold text-foreground">Enter OTP</p>
           <p className="text-xs text-muted-foreground">
-            {"Sent to "}
+            {contactMode === "mobile"
+              ? "Sent via SMS to "
+              : "Sent via Email to "}
             <span
               className="font-semibold"
               style={{ color: "oklch(0.25 0.06 265)" }}
             >
-              {selectedCountry.flag} {selectedCountry.code} {mobile}
+              {maskedContact}
             </span>
           </p>
         </div>
       </div>
+
+      {/* Demo mode notice */}
+      {demoOtpCode && (
+        <div
+          className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
+          style={{
+            background: "oklch(0.97 0.04 80)",
+            border: "1px solid oklch(0.85 0.1 80)",
+          }}
+        >
+          <span className="text-base">&#x1f4cb;</span>
+          <div>
+            <p
+              className="text-xs font-semibold"
+              style={{ color: "oklch(0.45 0.15 80)" }}
+            >
+              Demo Mode — SMS API key not configured
+            </p>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "oklch(0.5 0.1 80)" }}
+            >
+              Your OTP:{" "}
+              <span className="font-bold tracking-widest">{demoOtpCode}</span>
+            </p>
+          </div>
+        </div>
+      )}
 
       <div
         className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl"
@@ -582,6 +853,7 @@ function StepTwo({
         <p className="text-xs text-muted-foreground">
           {"6-digit code — valid for "}
           <span className="font-medium text-foreground">5 minutes</span>
+          {" · max 3 attempts"}
         </p>
       </div>
 

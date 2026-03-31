@@ -106,6 +106,21 @@ export interface backendInterface {
         err: string;
     }>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setFast2SmsApiKey(key: string): Promise<void>;
+    sendPhoneOtp(phone: string): Promise<{
+        __kind__: "ok";
+        ok: string;
+    } | {
+        __kind__: "err";
+        err: string;
+    }>;
+    verifyPhoneOtp(phone: string, code: string): Promise<{
+        __kind__: "ok";
+        ok: string;
+    } | {
+        __kind__: "err";
+        err: string;
+    }>;
     uploadDocument(studentId: bigint, documentName: string, filePath: string): Promise<string>;
     verifyDocument(studentId: bigint, documentType: string, ocrText: string): Promise<DocumentVerificationResult>;
 }

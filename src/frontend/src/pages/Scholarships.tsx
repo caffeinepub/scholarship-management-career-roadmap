@@ -42,8 +42,7 @@ import {
   type StudyLevel,
   scholarshipsData,
 } from "../data/scholarshipsData";
-import { useGetMyProfile } from "../hooks/useQueries";
-import { useGetMyApplications } from "../hooks/useQueries";
+import { useGetMyApplications, useGetMyProfile } from "../hooks/useQueries";
 import { getDaysLeft, getDeadlineStatus } from "../utils/deadlineUtils";
 import { calculateMatchScore } from "../utils/matchScore";
 
@@ -64,7 +63,11 @@ function getEligibilityHint(
     ],
     general: ["Merit-based", "Merit-cum-Means"],
   };
-  const eligible = catMap[student.category]?.some((t) =>
+  const catKey =
+    typeof student.category === "string"
+      ? student.category
+      : (Object.keys(student.category as object)[0] ?? "");
+  const eligible = catMap[catKey]?.some((t) =>
     scholarship.scholarshipType.includes(t),
   );
   if (eligible)
@@ -694,7 +697,7 @@ export default function Scholarships() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {profile
-              ? `Showing scholarships for ${profile.category.toUpperCase()} · ${profile.courseLevel}`
+              ? `Showing scholarships for ${(typeof profile.category === "string" ? profile.category : (Object.keys(profile.category as object)[0] ?? "")).toUpperCase()} · ${profile.courseLevel}`
               : "Browse all available scholarships"}
           </p>
         </div>

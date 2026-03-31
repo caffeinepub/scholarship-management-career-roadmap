@@ -38,6 +38,7 @@ export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Route guard: redirect to /login if not authenticated (neither Internet Identity nor demo token)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: navigate is stable
   useEffect(() => {
     if (loginStatus === "initializing") return;
     const hasToken = !!localStorage.getItem("token");
@@ -45,7 +46,7 @@ export default function DashboardLayout() {
     if (!hasToken && !hasIdentity) {
       navigate({ to: "/login" });
     }
-  }, [identity, loginStatus, navigate]);
+  }, [identity, loginStatus]);
 
   const handleLogout = () => {
     // Clear demo/OTP auth token
