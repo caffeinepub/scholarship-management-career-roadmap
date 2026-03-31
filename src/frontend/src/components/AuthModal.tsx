@@ -20,6 +20,7 @@ import { toast } from "sonner";
 interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
 const COUNTRIES = [
@@ -47,7 +48,11 @@ const COUNTRIES = [
 
 type Country = (typeof COUNTRIES)[number];
 
-export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
+export default function AuthModal({
+  open,
+  onOpenChange,
+  onSuccess,
+}: AuthModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [mobile, setMobile] = useState("");
@@ -156,6 +161,7 @@ export default function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setIsLoading(false);
     toast.success("Registration successful! Welcome to ScholarSync 🎓");
     handleOpenChange(false);
+    if (onSuccess) onSuccess();
   };
 
   const handleResend = async () => {

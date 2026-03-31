@@ -133,7 +133,7 @@ function buildMilestones(
         "Apply for scholarships to fund your education and unlock global opportunities.",
       status: "current",
       detail: profile
-        ? `You're actively on ScholarPath — exploring ${profile.category.toUpperCase()} scholarships with ${Number(profile.profileCompletionPercentage)}% profile completion.`
+        ? `You're actively on ScholarSync — exploring ${profile.category.toUpperCase()} scholarships with ${Number(profile.profileCompletionPercentage)}% profile completion.`
         : "Register your profile to begin your scholarship journey.",
       skills: [
         "Application Writing",

@@ -12,7 +12,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "nav.help": "Help",
     "nav.logout": "Logout",
     "nav.login": "Login",
-    "nav.appName": "ScholarPath",
+    "nav.appName": "ScholarSync",
     "nav.tagline": "Scholarship Management Portal",
 
     // Dashboard
@@ -182,7 +182,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "common.notAvailable": "N/A",
 
     // Login
-    "login.title": "Welcome to ScholarPath",
+    "login.title": "Welcome to ScholarSync",
     "login.subtitle": "Your gateway to scholarships and career opportunities",
     "login.button": "Login with Internet Identity",
     "login.loggingIn": "Logging in...",
@@ -206,7 +206,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "nav.help": "सहायता",
     "nav.logout": "लॉग आउट",
     "nav.login": "लॉगिन",
-    "nav.appName": "ScholarPath",
+    "nav.appName": "ScholarSync",
     "nav.tagline": "छात्रवृत्ति प्रबंधन पोर्टल",
 
     // Dashboard
@@ -374,7 +374,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "common.notAvailable": "उपलब्ध नहीं",
 
     // Login
-    "login.title": "ScholarPath में आपका स्वागत है",
+    "login.title": "ScholarSync में आपका स्वागत है",
     "login.subtitle": "छात्रवृत्ति और करियर अवसरों का आपका प्रवेश द्वार",
     "login.button": "Internet Identity से लॉगिन करें",
     "login.loggingIn": "लॉगिन हो रहा है...",

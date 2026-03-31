@@ -63,7 +63,7 @@ export default function ChatbotWidget() {
     {
       id: "0",
       role: "bot",
-      text: "Hi! I'm your ScholarPath assistant. Ask me about scholarships, documents, eligibility, or anything else!",
+      text: "Hi! I'm your ScholarSync assistant. Ask me about scholarships, documents, eligibility, or anything else!",
       timestamp: new Date(),
     },
   ]);
@@ -143,7 +143,7 @@ export default function ChatbotWidget() {
               <Bot className="w-4 h-4" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold">ScholarPath Assistant</p>
+              <p className="text-sm font-semibold">ScholarSync Assistant</p>
               <p className="text-xs opacity-75">Always here to help</p>
             </div>
             <button

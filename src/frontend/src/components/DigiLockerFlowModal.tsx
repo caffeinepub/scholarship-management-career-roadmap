@@ -117,6 +117,36 @@ export default function DigiLockerFlowModal({
     setStep("fetching");
     try {
       await onConnect();
+      // Save documents to localStorage for auto-fill
+      try {
+        const docs = [
+          {
+            type: "aadhaarKyc",
+            label: "Aadhaar Card",
+            source: "digilocker",
+            status: "Verified",
+          },
+          {
+            type: "marksheet",
+            label: "10th Marksheet",
+            source: "digilocker",
+            status: "Verified",
+          },
+          {
+            type: "marksheet12",
+            label: "12th Marksheet",
+            source: "digilocker",
+            status: "Verified",
+          },
+          {
+            type: "incomeCertificate",
+            label: "Income Certificate",
+            source: "digilocker",
+            status: "Verified",
+          },
+        ];
+        localStorage.setItem("scholarSync_documents", JSON.stringify(docs));
+      } catch {}
       setStep("success");
     } catch {
       setStep("error");
@@ -329,7 +359,7 @@ export default function DigiLockerFlowModal({
                 className="text-xs text-amber-800 cursor-pointer leading-relaxed"
               >
                 I hereby give my consent to fetch the above documents from
-                DigiLocker and auto-upload them to my ScholarPath profile. These
+                DigiLocker and auto-upload them to my ScholarSync profile. These
                 documents will be marked as Government Verified.
               </Label>
             </div>

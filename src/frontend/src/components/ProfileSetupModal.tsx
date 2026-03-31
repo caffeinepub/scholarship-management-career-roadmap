@@ -64,7 +64,7 @@ export default function ProfileSetupModal() {
             </div>
             <div>
               <DialogTitle className="text-xl">
-                Welcome to ScholarPath!
+                Welcome to ScholarSync!
               </DialogTitle>
               <DialogDescription className="text-sm mt-0.5">
                 Let's set up your profile to get started.

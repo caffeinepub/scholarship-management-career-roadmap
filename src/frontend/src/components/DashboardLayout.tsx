@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, Outlet, useLocation } from "@tanstack/react-router";
+import { Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Award,
   BookOpen,
@@ -14,7 +14,7 @@ import {
   User,
   X,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { clearProfileId } from "../hooks/useProfile";
 import LanguageToggle from "./LanguageToggle";
@@ -31,15 +31,34 @@ const navItems = [
 ];
 
 export default function DashboardLayout() {
-  const { clear, identity } = useInternetIdentity();
+  const { clear, identity, loginStatus } = useInternetIdentity();
   const queryClient = useQueryClient();
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = async () => {
+  // Route guard: redirect to /login if not authenticated (neither Internet Identity nor demo token)
+  useEffect(() => {
+    if (loginStatus === "initializing") return;
+    const hasToken = !!localStorage.getItem("token");
+    const hasIdentity = !!identity;
+    if (!hasToken && !hasIdentity) {
+      navigate({ to: "/login" });
+    }
+  }, [identity, loginStatus, navigate]);
+
+  const handleLogout = () => {
+    // Clear demo/OTP auth token
+    localStorage.removeItem("token");
+    // Clear session data
+    sessionStorage.clear();
+    // Clear profile and query cache
     clearProfileId();
-    await clear();
     queryClient.clear();
+    // Logout from Internet Identity (fire-and-forget)
+    clear();
+    // Redirect to login page
+    window.location.href = "/login";
   };
 
   const appId = encodeURIComponent(

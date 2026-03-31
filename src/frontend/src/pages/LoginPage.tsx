@@ -10,6 +10,8 @@ import {
   Shield,
 } from "lucide-react";
 import React from "react";
+import { useState } from "react";
+import AuthModal from "../components/AuthModal";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 const features = [
@@ -47,6 +49,7 @@ const features = [
 
 export default function LoginPage() {
   const { login, loginStatus, identity } = useInternetIdentity();
+  const [showOtpModal, setShowOtpModal] = useState(false);
   const queryClient = useQueryClient();
   const isLoggingIn = loginStatus === "logging-in";
   const isAuthenticated = !!identity;
@@ -75,7 +78,7 @@ export default function LoginPage() {
             </div>
             <div>
               <span className="font-bold text-lg text-foreground font-display leading-none">
-                ScholarPath
+                ScholarSync
               </span>
               <p className="text-xs text-muted-foreground">
                 Scholarship Portal
@@ -111,7 +114,7 @@ export default function LoginPage() {
                   <span className="text-primary">Scholarships</span>
                 </h1>
                 <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
-                  ScholarPath helps students discover, apply, and track
+                  ScholarSync helps students discover, apply, and track
                   scholarships — all in one secure, decentralized platform.
                 </p>
               </div>
@@ -163,6 +166,19 @@ export default function LoginPage() {
                 <p className="mt-3 text-xs text-muted-foreground">
                   No password required · Decentralized & secure · Free to use
                 </p>
+                <div className="flex items-center gap-3 mt-4">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground">OR</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowOtpModal(true)}
+                  data-ocid="login.secondary_button"
+                  className="mt-3 inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-border bg-card text-foreground font-medium text-sm hover:bg-muted transition-colors"
+                >
+                  📱 Login with Mobile OTP
+                </button>
               </div>
             </div>
 
@@ -172,7 +188,7 @@ export default function LoginPage() {
                 <div className="rounded-2xl overflow-hidden shadow-2xl border border-border">
                   <img
                     src="/assets/generated/dashboard-hero-banner.dim_1200x300.png"
-                    alt="ScholarPath Dashboard"
+                    alt="ScholarSync Dashboard"
                     className="w-full object-cover"
                   />
                 </div>
@@ -238,7 +254,7 @@ export default function LoginPage() {
       {/* Footer */}
       <footer className="shrink-0 border-t border-border py-6 bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} ScholarPath. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ScholarSync. All rights reserved.</p>
           <p>
             Built with <span className="text-red-500">♥</span> using{" "}
             <a
@@ -252,6 +268,14 @@ export default function LoginPage() {
           </p>
         </div>
       </footer>
+      <AuthModal
+        open={showOtpModal}
+        onOpenChange={setShowOtpModal}
+        onSuccess={() => {
+          localStorage.setItem("token", `demo-otp-${Date.now()}`);
+          window.location.href = "/";
+        }}
+      />
     </div>
   );
 }

@@ -56,7 +56,7 @@ export default function Help() {
         <div className="flex items-center gap-3">
           <img
             src="/assets/generated/scholarpath-logo.dim_128x128.png"
-            alt="ScholarPath Logo"
+            alt="ScholarSync Logo"
             className="h-8 w-8 rounded-lg object-cover"
           />
           <div>
@@ -89,7 +89,7 @@ export default function Help() {
             {t("nav.help")} & FAQ
           </h1>
           <p className="text-gray-500 text-sm">
-            Find answers to common questions about using ScholarPath
+            Find answers to common questions about using ScholarSync
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export default function Help() {
 
         {/* Footer */}
         <footer className="text-center py-4 text-gray-400 text-xs border-t border-gray-100">
-          © {new Date().getFullYear()} ScholarPath · Built with ❤️ using{" "}
+          © {new Date().getFullYear()} ScholarSync · Built with ❤️ using{" "}
           <a
             href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
               window.location.hostname || "scholarpath",

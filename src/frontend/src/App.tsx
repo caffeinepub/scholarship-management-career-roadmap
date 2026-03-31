@@ -21,6 +21,7 @@ import MyApplications from "./pages/MyApplications";
 import Profile from "./pages/Profile";
 import ResumeBuilder from "./pages/ResumeBuilder";
 import Roadmap from "./pages/Roadmap";
+import ScholarshipApplyPage from "./pages/ScholarshipApplyPage";
 import ScholarshipDetail from "./pages/ScholarshipDetail";
 import Scholarships from "./pages/Scholarships";
 
@@ -108,6 +109,12 @@ const helpRoute = createRoute({
   component: Help,
 });
 
+const applyRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: "/apply/future-leaders",
+  component: ScholarshipApplyPage,
+});
+
 const roadmapRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: "/roadmap",
@@ -126,6 +133,7 @@ const routeTree = rootRoute.addChildren([
     resumeRoute,
     helpRoute,
     roadmapRoute,
+    applyRoute,
   ]),
 ]);
 

@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
   Award,
@@ -623,8 +624,68 @@ export default function Scholarships() {
     return groups;
   }, [filteredScholarships]);
 
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 p-6">
+      {/* Demo Scholarship */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-widest text-indigo-600">
+            🌟 Featured Demo
+          </span>
+        </div>
+        <div className="rounded-2xl overflow-hidden border-2 border-indigo-300 shadow-lg shadow-indigo-100">
+          <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <span className="text-xl">⭐</span>
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg leading-tight">
+                  Future Leaders Scholarship
+                </h3>
+                <p className="text-indigo-100 text-xs">ScholarSync Demo</p>
+              </div>
+            </div>
+            <span className="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/30">
+              Demo · Auto-Fill Enabled
+            </span>
+          </div>
+          <div className="bg-card px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <p className="text-sm text-muted-foreground">
+                Demo scholarship for testing the auto-apply feature. All your
+                profile data and documents will be automatically filled when you
+                click Apply.
+              </p>
+              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  💰{" "}
+                  <strong className="text-foreground">
+                    ₹1,00,000 per year
+                  </strong>
+                </span>
+                <span className="flex items-center gap-1">
+                  👥 All students with valid profile
+                </span>
+                <span className="flex items-center gap-1">
+                  🟢 Open · No deadline
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              data-ocid="scholarships.primary_button"
+              onClick={() => navigate({ to: "/apply/future-leaders" })}
+              className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-colors shadow-md"
+            >
+              Apply Now →
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
