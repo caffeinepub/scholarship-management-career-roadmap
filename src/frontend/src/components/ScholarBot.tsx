@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { detectEmotion, getEmotionalPrefix } from "../utils/chatbotMatcher";
 import { type LocalProfile, loadProfileLocally } from "../utils/profileStore";
 
 type Language = "en" | "hi" | "gu" | "ta";
@@ -17,21 +18,21 @@ const LANG_LABELS: Record<Language, string> = {
 };
 
 const GREETINGS: Record<Language, string> = {
-  en: "Hi! I'm VANI 👋\nI'm here to help you with scholarship queries. Ask me anything about eligibility, documents, deadlines, or how to apply!",
-  hi: "नमस्ते! मैं VANI हूँ 👋\nमैं छात्रवृत्ति से जुड़े आपके सवालों में मदद करने के लिए यहाँ हूँ। पात्रता, दस्तावेज़, अंतिम तिथि या आवेदन प्रक्रिया के बारे में पूछें!",
-  gu: "નમસ્તે! હું VANI છું 👋\nશિષ્યવૃત્તિ વિશે કોઈ પણ પ્રશ્ન પૂછો — પાત્રતા, દસ્તાવેજ, છેલ્લી તારીખ!",
-  ta: "வணக்கம்! நான் VANI 👋\nஉதவி செய்ய தயார். கல்வி உதவித்தொகை குறித்த எந்த சந்தேகமும் கேளுங்கள்!",
+  en: "Namaste! Main VANI hoon, tera scholarship mentor 🙂\nKoi bhi doubt ho, seedha pooch — main hoon na help karne ke liye!",
+  hi: "नमस्ते! मैं VANI हूँ, तेरा scholarship mentor 🙂\nकोई भी doubt हो, सीधे पूछ — main hoon na help karne ke liye!",
+  gu: "નમસ્તે! હું VANI છું, તારો scholarship mentor 🙂\nકોઈ પણ doubt હોય, સીધું પૂછ — main hoon na!",
+  ta: "வணக்கம்! நான் VANI, உங்கள் scholarship mentor 🙂\nஏதாவது சந்தேகம் இருந்தால் நேரடியாக கேளுங்கள் — main hoon na!",
 };
 
 const SUGGESTIONS: Record<Language, string[]> = {
   en: [
-    "What should I do next?",
-    "Which skills to learn?",
-    "How to get scholarship?",
-    "Suggest internships",
-    "How to apply?",
-    "Required documents",
-    "Check deadline",
+    "Apply kaise karein? 🙂",
+    "Kaunse documents chahiye? 📄",
+    "Mujhe scholarship suggest karo 🎓",
+    "Mujhe samajh nahi aa raha 😟",
+    "Main stressed hoon 😰",
+    "Skill gap kya hai? 💡",
+    "Deadline kab hai? ⏰",
   ],
   hi: [
     "मुझे अब क्या करना चाहिए?",
@@ -474,7 +475,25 @@ export default function ScholarBot() {
     // Capture profile at call time to use inside the timeout
     const profileSnapshot = studentProfile;
     setTimeout(() => {
-      const reply = getBotReply(userText, lang, profileSnapshot);
+      const baseReply = getBotReply(userText, lang, profileSnapshot);
+      const emotion = detectEmotion(userText);
+      const prefix = getEmotionalPrefix(emotion);
+      const motivationLines = [
+        "You're doing great 🙂",
+        "You're on the right track 🚀",
+        "Keep going, you've got this! 💡",
+        "One step at a time — you can do this! 🙂",
+      ];
+      const addMotivation =
+        baseReply.length > 120 &&
+        !baseReply.includes("🚀") &&
+        !baseReply.includes("doing great");
+      const motivation = addMotivation
+        ? `\n\n${motivationLines[Math.floor(Math.random() * motivationLines.length)]}`
+        : "";
+      const reply = prefix
+        ? `${prefix}\n\n${baseReply}${motivation}`
+        : `${baseReply}${motivation}`;
       setMessages((prev) => [
         ...prev,
         { role: "bot", text: reply, id: ++msgIdCounter },

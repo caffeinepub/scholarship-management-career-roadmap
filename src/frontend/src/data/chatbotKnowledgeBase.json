@@ -11,151 +11,116 @@
       "transcript",
       "result upload"
     ],
-    "answer": "You can upload your marksheet in the Documents section. Go to Documents from the sidebar and click 'Upload' next to 'Marksheet'.",
+    "answer": "Chal, marksheet upload karna bahut easy hai! 🙂\n\nStep 1: Sidebar mein 'Documents' pe jao\nStep 2: 'Marksheet' ke samne 'Upload' click karo\nStep 3: File select karo — ho gaya! ✅\n\nTu kar sakta hai 💪",
     "pageLink": "/documents"
   },
   {
     "id": 2,
-    "patterns": [
-      "income certificate",
-      "income proof",
-      "aay praman patra",
-      "income cert upload",
-      "income document",
-      "aay certificate"
-    ],
-    "answer": "Upload your Income Certificate in the Documents section. It is required for most scholarships.",
+    "patterns": ["income certificate", "income proof", "aay praman", "income"],
+    "answer": "Income Certificate ek important document hai, but tension nahi! 🙂\n\nYe document batata hai teri family ki yearly income kya hai.\nIsse scholarship eligibility check hoti hai.\n\nStep 1: Documents section mein jao\nStep 2: Income Certificate upload karo\n\nEk baar ho gaya toh baar baar kaam aayega 🚀",
     "pageLink": "/documents"
   },
   {
     "id": 3,
     "patterns": [
       "caste certificate",
-      "jati praman patra",
       "category certificate",
-      "sc st obc certificate",
-      "caste proof"
+      "jati praman",
+      "community certificate"
     ],
-    "answer": "You can upload your Caste Certificate in the Documents section. This is required for SC/ST/OBC category scholarships.",
+    "answer": "Caste/Category Certificate SC/ST/OBC scholarships ke liye zaroori hai 💡\n\nIsse teri category verify hoti hai — aur bahut saari scholarships open ho jaati hain!\n\nStep 1: Documents section pe jao\nStep 2: Caste Certificate upload karo\n\nMain hoon na — step by step karte hain 🙂",
     "pageLink": "/documents"
   },
   {
     "id": 4,
     "patterns": [
       "apply scholarship",
-      "scholarship apply kaise kare",
       "how to apply",
-      "apply karna",
-      "scholarship ke liye apply",
-      "application submit"
+      "apply kaise",
+      "application process",
+      "scholarship apply"
     ],
-    "answer": "To apply for a scholarship, go to the Scholarships page, find a scholarship you are eligible for, and click 'Apply Now'. Fill in the form and submit.",
+    "answer": "Chal, apply karna bahut easy hai! 🙂\n\nStep 1: Scholarships page pe jao\nStep 2: Apne liye best scholarship dhundo\nStep 3: 'Apply Now' click karo\nStep 4: Auto-Fill use karo — time bachega!\nStep 5: Submit karo ✅\n\nTu sahi track pe hai 🚀",
     "pageLink": "/scholarships"
   },
   {
     "id": 5,
     "patterns": [
       "profile complete",
-      "profile kaise complete kare",
-      "profile completion",
-      "profile fill karo",
-      "profile update",
-      "profile banana"
+      "complete profile",
+      "profile fill",
+      "profile kaise bhare"
     ],
-    "answer": "Complete your profile by going to the Profile section. Fill in your personal details, academic records, and upload required documents.",
+    "answer": "Profile complete karna pehla aur sabse important step hai! 🙂\n\nStep 1: Profile section mein jao\nStep 2: Apna naam, income, marks, aur category bhar do\nStep 3: Save karo\n\nJitna zyada complete profile, utna better scholarship match milega.\nTu achha kar raha hai 💪",
     "pageLink": "/profile"
   },
   {
     "id": 6,
-    "patterns": [
-      "resume",
-      "resume banana",
-      "resume builder",
-      "cv banana",
-      "resume kaise banaye",
-      "academic details",
-      "career details"
-    ],
-    "answer": "Use the Resume Builder to create your resume. You can add Academic Details and Career Details, and use 'Auto-Fill from Profile' to populate fields automatically.",
-    "pageLink": "/resume-builder"
+    "patterns": ["resume", "cv", "resume builder", "build resume"],
+    "answer": "Tera Resume Builder ScholarSync pe hi hai! 💡\n\nStep 1: Dashboard pe jao\nStep 2: Resume section dhundo\nStep 3: Academic details, skills, aur certificates add karo\n\nEk strong resume bahut kaam aata hai — keep building it!\nTu sahi direction mein ja raha hai 🙂",
+    "pageLink": "/dashboard"
   },
   {
     "id": 7,
     "patterns": [
       "eligibility",
-      "eligible hoon",
       "am i eligible",
-      "eligibility check",
-      "patra hoon",
-      "scholarship ke liye eligible",
-      "check eligibility"
+      "eligible",
+      "qualify",
+      "patrta"
     ],
-    "answer": "You can check your eligibility for any scholarship on the Scholarships page. Each scholarship card shows an eligibility badge. Click on a scholarship for detailed eligibility information.",
+    "answer": "Badiya sawaal! 🙂\n\nHar scholarship ka ek Match Score hota hai — sirf tere liye.\n\nYe score check karta hai:\n• Teri family income\n• Tere marks\n• Teri category (SC/ST/OBC/General)\n\nScore jitna zyada, chances utne better!\nScholarships page pe jao aur dekho — tu shocked ho jaayega 🚀",
     "pageLink": "/scholarships"
   },
   {
     "id": 8,
     "patterns": [
       "skill gap",
-      "skills missing",
-      "required skills",
-      "skill analysis",
-      "kaunse skills chahiye",
-      "skill gap analysis"
+      "skills analysis",
+      "what skills",
+      "missing skills"
     ],
-    "answer": "The Skill Gap Analysis widget on your Dashboard shows which skills you have and which are required for your matched scholarships.",
-    "pageLink": "/"
+    "answer": "Tera Skill Gap Analysis Dashboard pe hai! 💡\n\nYe dikhata hai:\n• Kaunse skills tere paas hain\n• Kaunse skills seekhne chahiye\n\nSochle isko apna personal skills roadmap!\nTu pehle se hi ek step aage hai check karke 🙂",
+    "pageLink": "/dashboard"
   },
   {
     "id": 9,
     "patterns": [
       "documents",
-      "documents kahan",
-      "document upload",
-      "documents section",
-      "dastaveez",
-      "upload documents",
-      "documents kaise upload kare"
+      "what documents",
+      "required documents",
+      "documents needed",
+      "dastaveez"
     ],
-    "answer": "All your documents can be managed in the Documents section. You can upload, view, and replace documents there.",
+    "answer": "Documents thoda important part hai, but tension nahi! 🙂\n\nYe saare documents ready rakh:\n• Aadhar card ✅\n• Income certificate ✅\n• 10th/12th marksheet ✅\n• Caste certificate (agar applicable ho) ✅\n• Bank passbook ✅\n\nPro tip: DigiLocker connect karo — automatically fetch ho jaate hain, manually upload nahi karna padega!\nEk ek karke collect karo — easily ho jaayega 🚀",
     "pageLink": "/documents"
   },
   {
     "id": 10,
     "patterns": [
       "my applications",
-      "mera application",
       "application status",
-      "application track",
-      "applied scholarships",
-      "application kahan dekhe"
+      "check application",
+      "where is my application"
     ],
-    "answer": "You can view all your scholarship applications and their current status in the 'My Applications' section.",
-    "pageLink": "/my-applications"
+    "answer": "Apni saari applications ek jagah dekh sakta hai! 💡\n\nStep 1: 'My Applications' section pe jao\nStep 2: Har application ka status dekho\n\nStatus types:\n• Pending — wait kar\n• Under Review — review ho raha hai\n• Approved — congratulations! 🎉\n• Rejected — don't worry, try again!\n\nTrack karte raho — achhi khabar aa sakti hai 🚀",
+    "pageLink": "/applications"
   },
   {
     "id": 11,
     "patterns": [
       "auto fill",
-      "auto-fill",
-      "automatic fill",
-      "form automatically fill",
-      "profile se fill",
-      "auto fill kaise kare"
+      "autofill",
+      "fill form automatically",
+      "auto complete"
     ],
-    "answer": "Use the 'Auto-Fill from Profile' button on the scholarship application form or Resume Builder to automatically populate fields from your stored profile data.",
-    "pageLink": "/resume-builder"
+    "answer": "Auto-Fill feature bahut time bachata hai! 🙂\n\nStep 1: Pehle apna Profile complete karo\nStep 2: Scholarship form open karo\nStep 3: '✨ Auto-Fill from Profile' button click karo\nStep 4: Saari details automatically bhar jaayengi!\n\nSmart aur simple — tu iska fayda zaroor uthao 💡",
+    "pageLink": "/profile"
   },
   {
     "id": 12,
-    "patterns": [
-      "aadhaar",
-      "aadhar card",
-      "aadhaar upload",
-      "identity proof",
-      "id proof"
-    ],
-    "answer": "Upload your Aadhaar Card in the Documents section as identity proof.",
+    "patterns": ["aadhaar", "aadhar", "aadhar card", "aadhaar card", "uid"],
+    "answer": "Aadhar Card identity proof ke liye chahiye hota hai 💡\n\nDo tarike hain isse add karne ke:\n\nOption 1: Documents section mein manually upload karo\nOption 2: DigiLocker connect karo — automatic fetch ho jaata hai!\n\nMain hoon na — koi bhi option choose karo, main guide karunga 🙂",
     "pageLink": "/documents"
   },
   {
@@ -163,40 +128,23 @@
     "patterns": [
       "deadline",
       "last date",
+      "closing date",
       "scholarship deadline",
-      "aakhri tarikh",
-      "submission date",
-      "apply by"
+      "when to apply"
     ],
-    "answer": "Each scholarship has a deadline shown on its card. Check the Scholarships page for upcoming deadlines.",
+    "answer": "Deadlines pe dhyan dena bahut zaroori hai! ⏰\n\nHar scholarship card pe deadline dikhti hai:\n• 🟢 Green = Open hai, time hai\n• 🟡 Yellow = Closing Soon, jaldi karo!\n• 🔴 Red = Band ho gayi\n\nSaath suggestion — last din ka wait mat karo.\nPehle apply karo, phir aaram se raho 🙂",
     "pageLink": "/scholarships"
   },
   {
     "id": 14,
-    "patterns": [
-      "login",
-      "login kaise kare",
-      "sign in",
-      "account",
-      "register",
-      "how to login"
-    ],
-    "answer": "Click the 'Login' button and authenticate using Internet Identity. It is secure and decentralized.",
-    "pageLink": "/login"
+    "patterns": ["login", "sign in", "register", "account"],
+    "answer": "Register karna bahut simple hai! 🙂\n\nStep 1: 'Login' button click karo\nStep 2: Apna mobile number daal do\nStep 3: OTP verify karo\nStep 4: Profile set up karo\n\nBas! Tera account ready ho jaayega.\nAur ek baar register hua toh sab features unlock ho jaate hain 🚀",
+    "pageLink": "/"
   },
   {
     "id": 15,
-    "patterns": [
-      "help",
-      "support",
-      "problem",
-      "issue",
-      "sahayta",
-      "madad",
-      "faq",
-      "frequently asked"
-    ],
-    "answer": "Visit our Help page for frequently asked questions and guidance on using the platform.",
+    "patterns": ["help", "support", "guide", "how does this work"],
+    "answer": "Main hoon na! Har step mein help karunga 🙂\n\nMain ye sab kar sakta hoon:\n💡 Scholarship ke sawaal answer karna\n💡 Documents mein guide karna\n💡 Career ke next steps suggest karna\n💡 Personalized scholarship matches dena\n\nKoi bhi sawaal chota nahi hota — seedha pooch!\nMilke sab solve karte hain 🚀",
     "pageLink": "/help"
   }
 ]
