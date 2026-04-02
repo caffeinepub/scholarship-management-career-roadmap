@@ -284,29 +284,22 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Hero banner */}
-      <div className="relative rounded-2xl overflow-hidden">
-        <img
-          src="/assets/generated/dashboard-hero-banner.dim_1200x300.png"
-          alt="Dashboard Banner"
-          className="w-full h-40 object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/80 via-primary/40 to-transparent flex items-center px-8">
-          <div>
-            {isLoading && !isFetched ? (
-              <Skeleton className="h-8 w-48 mb-2" />
-            ) : (
-              <h1 className="text-2xl font-display font-bold text-white">
-                Welcome
-                {profile ? `, ${profile.fullName.split(" ")[0]}` : " back"}!
-              </h1>
-            )}
-            <p className="text-white/80 text-sm mt-1">
-              {profile
-                ? `${profile.instituteName} · ${profile.courseLevel}`
-                : `Principal: ${principalShort}...`}
-            </p>
-          </div>
+      {/* Hero banner — CSS gradient, no image dependency */}
+      <div className="h-40 rounded-2xl bg-gradient-to-r from-indigo-700 via-indigo-500 to-blue-400 flex items-center px-8">
+        <div>
+          {isLoading && !isFetched ? (
+            <Skeleton className="h-8 w-48 mb-2 bg-white/20" />
+          ) : (
+            <h1 className="text-2xl font-display font-bold text-white">
+              Welcome
+              {profile ? `, ${profile.fullName.split(" ")[0]}` : " back"}!
+            </h1>
+          )}
+          <p className="text-white/80 text-sm mt-1">
+            {profile
+              ? `${profile.instituteName} · ${profile.courseLevel}`
+              : `Principal: ${principalShort}...`}
+          </p>
         </div>
       </div>
 
