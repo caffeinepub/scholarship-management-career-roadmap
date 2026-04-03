@@ -284,9 +284,10 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
-      {/* Hero banner — CSS gradient, no image dependency */}
-      <div className="h-40 rounded-2xl bg-gradient-to-r from-indigo-700 via-indigo-500 to-blue-400 flex items-center px-8">
-        <div>
+      {/* Hero banner */}
+      <div className="relative h-40 rounded-2xl bg-gradient-to-r from-indigo-700 via-indigo-500 to-blue-400 flex items-center px-8 overflow-hidden">
+        {/* Text content - left side */}
+        <div className="relative z-10">
           {isLoading && !isFetched ? (
             <Skeleton className="h-8 w-48 mb-2 bg-white/20" />
           ) : (
@@ -301,6 +302,12 @@ export default function Dashboard() {
               : `Principal: ${principalShort}...`}
           </p>
         </div>
+        {/* Banner image - right side */}
+        <img
+          src="/assets/generated/dashboard-banner.dim_1200x320.png"
+          alt=""
+          className="absolute right-0 top-0 h-full w-auto object-cover object-left opacity-90 pointer-events-none select-none"
+        />
       </div>
 
       {/* Summary cards */}
